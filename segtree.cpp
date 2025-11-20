@@ -371,8 +371,8 @@ struct lazy_seg {
         return (resL + resR);
     }
 
-    T get() {
-        return tree[1];
+	T get() {
+        return queries_range(0, n - 1);
     }
 
     template<typename Pred>
@@ -492,6 +492,50 @@ struct info { // set, add
     friend info operator+(const info& a, const info& b) { // careful with copy lazy_tag when merge
         info res;
         res.s = a.s + b.s;
+        return res;
+    }
+};
+
+struct max_consecutive_one { // maximum len of consecutive ones
+    const static ll lazy_value = 0;
+    ll s;
+    ll l1, r1, l0, r0, ans1, ans0, len;
+    ll lazy;
+    max_consecutive_one(ll v = -1) : s(v), lazy(lazy_value), len(v != -1), l1(v == 1), r1(v == 1), l0(v == 0), r0(v == 0), ans1(v == 1), ans0(v == 0) { }
+
+    int have_lazy() {
+        return !(lazy == lazy_value);
+    }
+
+    void reset_lazy() {
+        lazy = lazy_value;
+    }
+
+    void apply(ll v, int _len) {
+        if(v) {
+            swap(l1, l0);
+            swap(r1, r0);
+            swap(ans1, ans0);
+        }
+        lazy ^= v;
+    }
+
+    friend max_consecutive_one operator+(const max_consecutive_one& a, const max_consecutive_one& b) { // careful about lazy_copy
+        max_consecutive_one res;
+        if(a.len == 0) {
+            res = b;
+        } else if(b.len == 0) {
+            res = a;
+        } else {
+            res.ans1 = max({a.ans1, b.ans1, a.r1 + b.l1});
+            res.ans0 = max({a.ans0, b.ans0, a.r0 + b.l0});
+            res.len = a.len + b.len;
+            res.l0 = a.l0 + (a.l0 == a.len ? b.l0 : 0);
+            res.l1 = a.l1 + (a.l1 == a.len ? b.l1 : 0);
+            res.r0 = b.r0 + (b.r0 == b.len ? a.r0 : 0);
+            res.r1 = b.r1 + (b.r1 == b.len ? a.r1 : 0);
+        }
+        res.lazy = lazy_value;
         return res;
     }
 };
@@ -734,12 +778,8 @@ struct wavelet_psgt {
         int cnt;
         ll sm;
         Node(int cnt = 0, ll sm = 0) : cnt(cnt), sm(sm) {}
-        friend Node operator+(const Node& x, const Node& y) {
-            return {x.cnt + y.cnt, x.sm + y.sm};
-        };
-        friend Node operator-(const Node& x, const Node& y) {
-            return {x.cnt - y.cnt, x.sm - y.sm};
-        };
+        friend Node operator+(const Node& x, const Node& y) { return {x.cnt + y.cnt, x.sm + y.sm}; };
+        friend Node operator-(const Node& x, const Node& y) { return {x.cnt - y.cnt, x.sm - y.sm}; };
     };
     int n;
     vt<Node> root;
@@ -747,7 +787,7 @@ struct wavelet_psgt {
     vpii child;
     vi a;
     int new_node() { root.pb(Node(0, 0)); child.pb({0, 0}); return root.size() - 1; }
-    int get_id(ll x) { return int(ub(all(a), x) - begin(a)) - 1; }
+    int get_id(ll x) { return int(lb(all(a), x) - begin(a)); }
     public:
     wavelet_psgt() {}
 
@@ -808,15 +848,15 @@ struct wavelet_psgt {
     }
 
     Node query_leq(int l, int r, int x) {
-        return query((l == 0 ? 0 : t[l - 1]), t[r], 0, get_id(x), 0, n - 1);
+        return query((l == 0 ? 0 : t[l - 1]), t[r], 0, get_id(x + 1) - 1, 0, n - 1);
     }
 
     Node query_eq(int l, int r, int x) {
         return query_leq(l, r, x) - query_leq(l, r, x - 1);
     }
 
-    Node queries_range(int l, int r, int low, int high) {
-        return query((l == 0 ? 0 : t[l - 1]), t[r], get_id(low - 1) + 1, get_id(high), 0, n - 1);
+    Node queries_range(int l, int r, ll low, ll high) {
+        return query((l == 0 ? 0 : t[l - 1]), t[r], get_id(low), get_id(high + 1) - 1, 0, n - 1);
     }
 
     Node query(int l, int r, int start, int end, int left, int right) {
@@ -842,6 +882,32 @@ struct wavelet_psgt {
         first_missing_number(child[l].ff, child[r].ff, left, middle, s);
         first_missing_number(child[l].ss, child[r].ss, middle + 1, right, s);
         return s;
+    }
+
+    pii kth_in_range(int l, int r, int start, int end, int k, int left, int right) {
+        int C = root[r].cnt - root[l].cnt;
+        if(left > end || right < start || left > right || C == 0) return {-1, 0};
+        if(start <= left && right <= end) {
+            if(C < k) return {-1, C};
+        }
+        if(left == right) {
+            return {a[left], C};
+        }
+        int middle = (left + right) >> 1;
+        auto [lv, lc] = kth_in_range(child[l].ff, child[r].ff, start, end, k, left, middle);
+        if(lv != -1) {
+            return {lv, -1};
+        }
+        auto [rv, rc] = kth_in_range(child[l].ss, child[r].ss, start, end, k - lc, middle + 1, right);
+        if(rv != -1) {
+            return {rv, -1};
+        }
+        return {-1, lc + rc};
+    }
+
+    int kth_in_range(int l, int r, ll left, ll right, int k) {
+		// https://atcoder.jp/contests/abc324/tasks/abc324_g
+        return kth_in_range(l == 0 ? 0 : t[l - 1], t[r], get_id(left), get_id(right + 1) - 1, k, 0, n - 1).ff; 
     }
 };
 

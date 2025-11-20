@@ -558,38 +558,38 @@ struct Persistent_DSU {
 		this->n = n; version = 0;
 		parent.rsz(n); rank.rsz(n); col.rsz(n);
 		for (int i = 0; i < n; i++) {
-			parent[i].pb(MP(version, i));
-			rank[i].pb(MP(version, 1));
-			col[i].pb(MP(version, 0));
+			parent[i].pb({version, i});
+			rank[i].pb({version, 1});
+			col[i].pb({version, 0});
 		}
-		bip.pb(MP(version, 1));
+        bip.pb({version, 1});
 	}
  
 	int find(int u, int ver) {
-		auto pr = *(ub(all(parent[u]), MP(ver + 1, -1)) - 1);
+		auto pr = *(ub(all(parent[u]), make_pair(ver + 1, -1)) - 1);
 		return pr.ss != u ? find(pr.ss, ver) : u;
 	}
  
-	int getColor(int u, int ver) {
-		auto cp = *(ub(all(col[u]), MP(ver + 1, -1)) - 1);
+	int get_color(int u, int ver) {
+		auto cp = *(ub(all(col[u]), make_pair(ver + 1, -1)) - 1);
 		int c = cp.ss;
 		int pu = find(u, ver);
-		return pu == u ? c : c ^ getColor(pu, ver);
+		return pu == u ? c : c ^ get_color(pu, ver);
 	}
  
-	int getRank(int u, int ver) {
+	int get_rank(int u, int ver) {
 		u = find(u, ver);
-		auto it = *(ub(all(rank[u]), MP(ver + 1, -1)) - 1);
+		auto it = *(ub(all(rank[u]), make_pair(ver + 1, -1)) - 1);
 		return it.ss;
 	}
 
 	int merge(int u, int v, int ver) {
 		u = find(u, ver), v = find(v, ver);
-		int cu = getColor(u, ver), cv = getColor(v, ver);
+		int cu = get_color(u, ver), cv = get_color(v, ver);
 		if(u == v) {
 			if((cu ^ cv) != 1) {
 				version = ver;
-				bip.pb(MP(version, 0));
+                bip.pb({version, 0});
 			}
 			return 0;
 		}
@@ -600,7 +600,7 @@ struct Persistent_DSU {
 		parent[v].pb({version, u});
 		int new_sz = szu + szv;
 		rank[u].pb({version, new_sz});
-		int new_col = getColor(u, ver) ^ getColor(v, ver) ^ 1;
+		int new_col = get_color(u, ver) ^ get_color(v, ver) ^ 1;
 		col[v].pb({version, new_col});
 		bip.pb({version, bip.back().ss});
 		return version;
@@ -610,15 +610,15 @@ struct Persistent_DSU {
 		return find(u, ver) == find(v, ver);
 	}
  
-	int getBip(int ver) {
-		auto it = ub(all(bip), MP(ver + 1, -1)) - 1;
+	int get_bip(int ver) {
+		auto it = ub(all(bip), make_pair(ver + 1, -1)) - 1;
 		return it->ss;
 	}
 
     int earliest_time(int u, int v, int m) {
         int left = 0, right = m, res = -1;
         while(left <= right) {
-            int middle = midPoint;
+            int middle = (left + right) >> 1;
             if(same(u, v, middle)) res = middle, right = middle - 1;
             else left = middle + 1;
         }

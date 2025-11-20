@@ -65,59 +65,6 @@ const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
 void solve() {
-    int n, m; cin >> n >> m;
-    vector<set<int>> block(n + 1);
-    while(m--) {
-        int u, v; cin >> u >> v;
-        block[u].insert(v);
-        block[v].insert(u);
-    }
-    set<int> rem;
-    for(int i = 2; i <= n; i++) {
-        rem.insert(i);
-    }
-    queue<int> q;
-    vector<int> dp(n + 1);
-    auto f = [&](int node, int cost) -> void {
-        dp[node] = cost;
-        q.push(node);
-    };
-    f(1, 1);
-    while(!q.empty()) {
-        auto node = q.front(); q.pop();
-        for(auto it = begin(rem); it != end(rem);) {
-            int u = *it;
-            if(!block[node].count(u)) {
-                f(u, dp[node] + 1);
-                it = rem.erase(it);
-            } else {
-                it++;
-            }
-        }
-    }
-    vvi layer(n + 2);
-    const int MOD = 998244353;
-    for(int i = 1; i <= n; i++) {
-        layer[dp[i]].pb(i);
-    }
-    vector<int> ways(n + 1);
-    ways[1] = 1;
-    for(int i = 2; i <= n; i++) {
-        int prev = 0;
-        for(auto& u : layer[i - 1]) {
-            prev = (prev + ways[u]) % MOD;
-        }
-        for(auto& u : layer[i]) {
-            int now = prev;
-            for(auto& v : block[u]) {
-                if(dp[v] == i - 1) {
-                    now = (now - ways[v] + MOD) % MOD;
-                }
-            }
-            ways[u] = now;
-        }
-    }
-    cout << (dp[n] == 0 ? -1 : ways[n]) << '\n';
 }
 
 signed main() {
@@ -126,7 +73,7 @@ signed main() {
     int t = 1;
     //cin >> t;
     for(int i = 1; i <= t; i++) {   
-        //cout << "Case #" << i << ": ";  
+        // cout << "Case #" << i << ": ";  
         solve();
     }
     endClock;

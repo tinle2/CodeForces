@@ -1627,6 +1627,44 @@ class MO {
         }
         return res;
     }
+	
+	pair<vvar(3), vi> get_iter() { 
+	// https://marisaoj.com/problem/604
+        auto cmp = [&](const ar(K)& a, const ar(K)& b) -> bool {    
+            if(a[0] / block != b[0] / block) return a[0] / block < b[0] / block;
+            int d = a[0] / block;   
+            if(d & 1) return a[1] > b[1];
+            return a[1] < b[1];
+        }; sort(all(Q), cmp);
+        vvar(3) arr(n);
+        vi I;
+        int l = 1, r = 0;    // modify to 0 as needed "left = 0"
+        for(int i = 0; i < q; i++) { // 1 base index
+            const auto& [ql, qr, id] = Q[i];
+            I.pb(id);
+            while(r < qr) {
+                r++;
+                arr[l - 1].pb({a[r], i, -1});
+                arr[r - 1].pb({a[r], i, 1});
+            }
+            while(l > ql) {
+                l--;
+                arr[l].pb({a[l], i, -1});
+                arr[r].pb({a[l], i, +1});
+            }
+            while(r > qr) {
+                arr[l - 1].pb({a[r], i, 1});
+                arr[r - 1].pb({a[r], i, -1});
+                r--;
+            }
+            while(l < ql) {
+                arr[l].pb({a[l], i, 1});
+                arr[r].pb({a[l], i, -1});
+                l++;
+            }
+        }
+        return {arr, I};
+    }
 };
 
 struct Mo_Update {
@@ -5324,4 +5362,328 @@ struct paint_grid {
 
     void paint_white(ll x1, ll y1, ll x2, ll y2) { paint(x1, y1, x2, y2, false); }
     void paint_black(ll x1, ll y1, ll x2, ll y2) { paint(x1, y1, x2, y2, true); }
+};
+
+const int B = 316;
+const int K = 360;
+int val[MX][K], cnt[K][MX], pre_val[K][K], label[K][MX], color[K][MX], N = 0;
+int cnt_now[MX], cnt_block[K], tmp[B];
+struct range_set_range_kth {
+    // https://marisaoj.com/problem/99
+    int n;
+    vi a;
+    range_set_range_kth(const vi& _a) : n((int)_a.size() - 1), a(_a) {
+        // 1-index everything
+        for(int i = 1, b = 1; i <= n; i += B, b++) {
+            N = b;
+            for(int j = LB(b); j <= RB(b); j++) {
+                int x = a[j];
+                color[b][x] = label[b][x] = x;
+                cnt[b][x]++;
+                val[x][b]++;
+                pre_val[BB(x)][b]++;
+            }
+        }
+        for(int b = 1; b <= N; b++) {
+            for(int x = 1; x < MX; x++) {
+                val[x][b] += val[x][b - 1];
+            }
+            for(int x = 1; x < K; x++) {
+                pre_val[x][b] += pre_val[x][b - 1];
+            }
+        }
+    }
+    int LB(int b) { return (b - 1) * B + 1; };
+    int RB(int b) { return min(n, b * B); };
+    int BB(int i) { return (i - 1) / B + 1; };
+    void reset(int b) {
+        for(int i = LB(b); i <= RB(b); i++) {
+            a[i] = label[b][a[i]];
+        }
+        for(int i = LB(b); i <= RB(b); i++) {
+            color[b][a[i]] = label[b][a[i]] = a[i];
+        }
+    };
+    void change_block(int l, int r, int x, int y) {
+        int b = BB(l);
+        if(!cnt[b][x]) return;
+        reset(b);
+        int c = 0;
+        for(int i = l; i <= r; i++) {
+            if(a[i] == x) {
+                c++;
+                a[i] = y;
+            }
+        }
+        color[b][y] = label[b][y] = y;
+        cnt[b][x] -= c;
+        cnt[b][y] += c;
+        val[x][b] -= c;
+        val[y][b] += c;
+        pre_val[BB(x)][b] -= c;
+        pre_val[BB(y)][b] += c;
+    };
+ 
+    int brute(int l, int r, int k) {
+        int m = 0;
+        for(int i = l; i <= r; i++) tmp[m++] = a[i];
+        nth_element(tmp, tmp + (k - 1), tmp + m);
+        return tmp[k - 1];
+    };
+    int query(int l, int r, int k) {
+        int bl = BB(l);
+        int br = BB(r);
+        if(bl == br) {
+            reset(bl);
+            return brute(l, r, k);
+        }
+        reset(bl);
+        reset(br);
+        for(int i = l; i <= RB(bl); i++) {
+            int x = a[i];
+            cnt_now[x]++;
+            cnt_block[BB(x)]++;
+        }
+        for(int i = LB(br); i <= r; i++) {
+            int x = a[i];
+            cnt_now[x]++;
+            cnt_block[BB(x)]++;
+        }
+        int b = 1;
+        int res = 0;
+        while(b <= N && k > (pre_val[b][br - 1] + cnt_block[b]) - pre_val[b][bl]) {
+            k -= (pre_val[b][br - 1] + cnt_block[b]) - pre_val[b][bl];
+            b++;
+        }
+        assert(B <= N);
+        for(int i = LB(b);; i++) {
+            assert(i < LB(b) + B);
+            int C = (val[i][br - 1] + cnt_now[i]) - val[i][bl];
+            if(k <= C) {
+                res = i;
+                break;
+            }
+            k -= C;
+        }
+        for(int i = l; i <= RB(bl); i++) {
+            int x = a[i];
+            cnt_now[x] = 0;
+            cnt_block[BB(x)] = 0;
+        }
+        for(int i = LB(br); i <= r; i++) {
+            int x = a[i];
+            cnt_now[x] = 0;
+            cnt_block[BB(x)] = 0;
+        }
+        return res;
+    };
+ 
+    void update(int l, int r, int x, int y) {
+        int bl = BB(l), br = BB(r);
+        if(x == y || val[x][br] - val[x][bl - 1] == 0) return;
+        for(int i = N; i > bl; i--) {
+            val[x][i] -= val[x][i - 1];
+            pre_val[BB(x)][i] -= pre_val[BB(x)][i - 1];
+            val[y][i] -= val[y][i - 1];
+            pre_val[BB(y)][i] -= pre_val[BB(y)][i - 1];
+        }
+        if(bl == br) {
+            change_block(l, r, x, y);
+        } else {
+            change_block(l, RB(bl), x, y); 
+            change_block(LB(br), r, x, y);
+            for(int i = bl + 1; i < br; i++) {
+                if(!cnt[i][x]) continue;
+                if(cnt[i][y] == 0) {
+                    swap(color[i][x], color[i][y]);
+                    label[i][color[i][y]] = y;
+                    int c = cnt[i][x];
+                    cnt[i][y] += c;
+                    cnt[i][x] = 0;
+                    pre_val[BB(x)][i] -= c;
+                    pre_val[BB(y)][i] += c;
+                    val[x][i] -= c;
+                    val[y][i] += c;
+                    continue;
+                }
+                change_block(LB(i), RB(i), x, y);
+            }
+        }
+        for(int i = bl + 1; i <= N; i++) {
+            val[x][i] += val[x][i - 1];
+            pre_val[BB(x)][i] += pre_val[BB(x)][i - 1];
+            val[y][i] += val[y][i - 1];
+            pre_val[BB(y)][i] += pre_val[BB(y)][i - 1];
+        }
+    };
+
+	int get_val(int id) {
+        int b = BB(id);   
+        return label[b][a[id]];
+    }
+};
+
+struct FastSet {
+    static constexpr unsigned B = 64;
+    int n;
+    int levels;
+    vector<vector<ull>> seg;
+
+    FastSet() : n(0), levels(0) {}
+
+    FastSet(int n_) { build(n_); }
+
+    int size() const { return n; }
+
+    void build(int m) {
+        seg.clear();
+        n = m;
+        int cur = m;
+        while(true) {
+            int len = (cur + B - 1) / B;
+            seg.pb(vector<ull>(len, 0));
+            if(len == 1) break;
+            cur = len;
+        }
+        levels = (int)seg.size();
+    }
+
+    template <class F>
+    void build(int m, F f) {
+        build(m);
+        for(int i = 0; i < m; i++) {
+            if(f(i)) {
+                seg[0][i / B] |= (1ULL << (i % B));
+            }
+        }
+        for(int h = 0; h + 1 < levels; h++) {
+            for(int i = 0; i < (int)seg[h].size(); i++) {
+                if(seg[h][i]) {
+                    seg[h + 1][i / B] |= (1ULL << (i % B));
+                }
+            }
+        }
+    }
+
+    bool operator[](int i) const {
+        if(i < 0 || i >= n) return false;
+        return (seg[0][i / B] >> (i % B)) & 1ULL;
+    }
+
+    void insert(int i) {
+        if(i < 0 || i >= n) return;
+        for(int h = 0; h < levels; h++) {
+            seg[h][i / B] |= (1ULL << (i % B));
+            i /= B;
+        }
+    }
+
+    void erase(int i) {
+        if(i < 0 || i >= n) return;
+        unsigned long long carry = 0;
+        for(int h = 0; h < levels; h++) {
+            int idx = i / B;
+            ull &v = seg[h][idx];
+            v &= ~(1ULL << (i % B));
+            v |= (carry << (i % B));
+            carry = (v != 0);
+            i = idx;
+        }
+    }
+
+    // first index x >= i with bit 1, or n if none
+    int next(int i) const {
+        if(i < 0) i = 0;
+        if(i >= n) return n;
+        int pos = i;
+        for(int h = 0; h < levels; h++) {
+            int idx = pos / B;
+            if(idx >= (int)seg[h].size()) break;
+            ull v = seg[h][idx];
+            v >>= (pos % B);
+            if(!v) {
+                idx++;
+                while(idx < (int)seg[h].size() && seg[h][idx] == 0) {
+                    idx++;
+                }
+                if(idx == (int)seg[h].size()) return n;
+                pos = idx * B;
+                v = seg[h][idx];
+            }
+            int offset = __builtin_ctzll(v);
+            pos += offset;
+            for(int g = h - 1; g >= 0; g--) {
+                int lowerIdx = pos;
+                pos = lowerIdx * B;
+                ull vv = seg[g][lowerIdx];
+                int off2 = __builtin_ctzll(vv);
+                pos += off2;
+            }
+            return pos;
+        }
+        return n;
+    }
+
+    // last index x <= i with bit 1, or -1 if none
+    int prev(int i) const {
+        if(i < 0) return -1;
+        if(i >= n) i = n - 1;
+        int pos = i;
+        for(int h = 0; h < levels; h++) {
+            if(pos < 0) break;
+            int idx = pos / B;
+            if(idx >= (int)seg[h].size()) {
+                idx = (int)seg[h].size() - 1;
+                pos = idx * B + (B - 1);
+            }
+            ull v = seg[h][idx];
+            unsigned shift = (unsigned)(pos % B);
+            ull mask = ~0ULL >> (63 - shift);
+            v &= mask;
+            while(!v) {
+                idx--;
+                if(idx < 0) return -1;
+                v = seg[h][idx];
+                pos = idx * B + (B - 1);
+            }
+            int offset = 63 - __builtin_clzll(v);
+            pos = idx * B + offset;
+            for(int g = h - 1; g >= 0; g--) {
+                int lowerIdx = pos;
+                pos = lowerIdx * B + (B - 1);
+                ull vv = seg[g][lowerIdx];
+                int off2 = 63 - __builtin_clzll(vv);
+                pos = lowerIdx * B + off2;
+            }
+            return pos;
+        }
+        return -1;
+    }
+
+    bool any(int l, int r) const {
+        return next(l) < r;
+    }
+
+    template <class F>
+    void enumerate(int l, int r, F f) const {
+        if(l < 0) l = 0;
+        if(r > n) r = n;
+        int x = next(l);
+        while(x < r) {
+            f(x);
+            x = next(x + 1);
+        }
+    }
+
+    void clear() {
+        enumerate(0, n, [&](int x) {erase(x);});
+    }
+
+    string to_string() const {
+        string s(n, '0');
+        for(int i = 0; i < n; i++) {
+            if((*this)[i]) s[i] = '1';
+        }
+        return s;
+    }
 };

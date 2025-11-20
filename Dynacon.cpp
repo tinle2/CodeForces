@@ -1,7 +1,17 @@
 https://codeforces.com/contest/938/problem/G
+https://oj.uz/problem/view/APIO19_bridges
 struct Undo_DSU {
     int n;
-    using Record = ar(8);
+
+    struct Record {
+        int type;
+        int ru, rank_ru;
+        int rv, rank_rv;
+        int col_rv;
+        int comp;
+        int is_bip;
+    };
+
     vi par, rank, col;
     bool is_bipartite;
     int comp;
@@ -20,22 +30,26 @@ struct Undo_DSU {
         return par[v] == v ? v : find(par[v]);
     }
     
-    int getColor(int v) {
-        return par[v] == v ? col[v] : (col[v] ^ getColor(par[v]));
+    int get_color(int v) {
+        return par[v] == v ? col[v] : (col[v] ^ get_color(par[v]));
     }
     
     bool merge(int u, int v, bool save = true) {
         int ru = find(u), rv = find(v);
-        int cu = getColor(u), cv = getColor(v);
+        int cu = get_color(u), cv = get_color(v);
         if(ru == rv) {
             if((cu ^ cv) != 1) {
-                if(save) st.push({1, -1, -1, -1, -1, -1, comp, (int)is_bipartite});
+                if(save) {
+                    st.push(Record{.type = 1, .ru = -1, .rank_ru = -1, .rv = -1, .rank_rv = -1, .col_rv  = -1, .comp = comp, .is_bip = (int)is_bipartite });
+                }
                 is_bipartite = false;
             }
             return false;
         }
         if(rank[ru] < rank[rv]) swap(ru, rv);
-        if(save) st.push({0, ru, rank[ru], rv, rank[rv], col[rv], comp, (int)is_bipartite});
+        if(save) {
+            st.push(Record{ .type = 0, .ru = ru, .rank_ru = rank[ru], .rv = rv, .rank_rv = rank[rv], .col_rv = col[rv], .comp = comp, .is_bip = (int)is_bipartite });
+        }
         comp--;
         par[rv] = ru;
         col[rv] = cu ^ cv ^ 1;
@@ -43,20 +57,23 @@ struct Undo_DSU {
         return true;
     }
     
-    void rollBack() {
-        if(!st.empty()) {
-            Record rec = st.top();
-            st.pop();
-            int type = rec[0];
-            comp = rec[6];
-            is_bipartite = (bool)rec[7];
-            if(type == 0) {
-                int ru = rec[1], oldRankU = rec[2], rv = rec[3], oldRankV = rec[4], oldColV = rec[5];
-                par[rv] = rv;
-                rank[ru] = oldRankU;
-                rank[rv] = oldRankV;
-                col[rv] = oldColV;
-            }
+    void roll_back() {
+        if(st.empty()) return;
+        Record rec = st.top();
+        st.pop();
+        int type = rec.type;
+        comp = rec.comp;
+        is_bipartite = (bool)rec.is_bip;
+        if(type == 0) {
+            int ru = rec.ru;
+            int old_rank_u = rec.rank_ru;
+            int rv = rec.rv;
+            int old_rank_v = rec.rank_rv;
+            int old_col_v = rec.col_rv;
+            par[rv]  = rv;
+            rank[ru] = old_rank_u;
+            rank[rv] = old_rank_v;
+            col[rv] = old_col_v;
         }
     }
     

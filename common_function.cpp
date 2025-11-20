@@ -2051,3 +2051,36 @@ T count_perm_abs_sum(vi a, int l) { // count number of permutation of a such tha
     for(int s = 0; s <= l; ++s) ans += cur[s][0];
     return ans;
 }
+
+ll min_steps(ll b, ll d) { // while(b) b -= gcd(b, d), steps++; return steps
+    // https://atcoder.jp/contests/arc159/tasks/arc159_b
+    if(b == 0) return 0;
+    if(d == 0) return 1;
+    vll primes;
+    {
+        ll x = d;
+        for(ll p = 2; p * p <= x; ++p) {
+            if(x % p == 0) {
+                primes.pb(p);
+                while(x % p == 0) x /= p;
+            }
+        }
+        if(x > 1) primes.pb(x);
+    }
+    ll res = 0;
+    while(b > 0) {
+        ll g = std::gcd(b, d);
+        ll B = b / g;
+        ll D = d / g;
+        ll t = B;
+        for(const auto& p : primes) {
+            if(D % p == 0) {
+                ll rem = B % p;
+                if(rem < t) t = rem;
+            }
+        }
+        res += t;
+        b -= t * g;
+    }
+    return res;
+}
