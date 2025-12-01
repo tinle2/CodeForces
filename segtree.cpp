@@ -496,6 +496,75 @@ struct info { // set, add
     }
 };
 
+const ar(3) lazy_value = {0, 1, 2};
+struct inversion_info {
+	// https://atcoder.jp/contests/abc265/tasks/abc265_g
+    ll inv[3][3];
+    ll c[3];
+    ar(3) lazy;
+    inversion_info(ll v = -1) : lazy(lazy_value) { 
+        memset(inv, 0, sizeof(inv));
+        memset(c, 0, sizeof(c));
+        if(v == -1) return;
+        c[v] = 1;
+    }
+
+    int have_lazy() {
+        return !(lazy == lazy_value);
+    }
+
+    void reset_lazy() {
+        lazy = lazy_value;
+    }
+
+    void apply(const ar(3)& v, int len) {
+        ll f[3] = {};
+        f[v[0]] += c[0];
+        f[v[1]] += c[1];
+        f[v[2]] += c[2];
+        ll nc[3][3] = {};
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                nc[v[i]][v[j]] += inv[i][j];
+            }
+        }
+        for(int i = 0; i < 3; i++) {
+            c[i] = f[i];
+            for(int j = 0; j < 3; j++) {
+                inv[i][j] = nc[i][j];
+            }
+        }
+        ar(3) nlazy;
+        for(int i = 0; i < 3; i++) {
+            nlazy[i] = v[lazy[i]];
+        }
+        lazy = nlazy;
+    }
+
+    friend inversion_info operator+(const inversion_info& a, const inversion_info& b) { // careful about lazy_copy
+        inversion_info res;
+        for(int i = 0; i < 3; i++) {
+            res.c[i] = a.c[i] + b.c[i];
+        }
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                res.inv[i][j] = a.inv[i][j] + b.inv[i][j] + a.c[i] * b.c[j];
+            }
+        }
+        return res;
+    }
+
+    ll get() {
+        ll res = 0;
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < i; j++) {
+                res += inv[i][j];
+            }
+        }
+        return res;
+    }
+};
+
 struct max_consecutive_one { // maximum len of consecutive ones
     const static ll lazy_value = 0;
     ll s;

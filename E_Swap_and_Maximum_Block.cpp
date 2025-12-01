@@ -64,7 +64,52 @@ const static ll INF = 4e18 + 10;
 const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
+struct ms {
+    ll ans, prefix, suffix, sm;
+    ms(ll x = -INF) : ans(max(0LL, x)), prefix(max(0LL, x)), suffix(max(0LL, x)), sm(x) {}
+
+    friend ms operator+(const ms& a, const ms& b) {
+        if(a.sm == -INF) return b;
+        if(b.sm == -INF) return a;
+        ms res;
+        res.ans = max({a.ans, b.ans, a.suffix + b.prefix});
+        res.sm = a.sm + b.sm;
+        res.prefix = max(a.prefix, a.sm + b.prefix);
+        res.suffix = max(b.suffix, b.sm + a.suffix);
+        return res;
+    }
+};
+
+int a[1 << 20];
+vector<ms> dfs(int l, int r) {
+    if(l == r) {
+        return {ms(a[l])};
+    }
+    int m = (l + r) >> 1;
+    auto L = dfs(l, m);
+    auto R = dfs(m + 1, r);
+    const int N = L.size();
+    vector<ms> dp(N * 2);
+    for(int i = 0; i < N; i++) {
+        dp[i] = L[i] + R[i];
+        dp[i + N] = R[i] + L[i];
+    }
+    return dp;
+}
+
 void solve() {
+    int n; cin >> n;
+    for(int i = 0; i < 1 << n; i++) {
+        cin >> a[i];
+    }
+    auto it = dfs(0, (1 << n) - 1);
+    int q; cin >> q;
+    int xr = 0;
+    while(q--) {
+        int x; cin >> x;
+        xr ^= 1 << x;
+        cout << it[xr].ans << '\n';
+    }
 }
 
 signed main() {
@@ -73,7 +118,7 @@ signed main() {
     int t = 1;
     //cin >> t;
     for(int i = 1; i <= t; i++) {   
-        //cout << "Case #" << i << ": ";  
+        // cout << "Case #" << i << ": ";  
         solve();
     }
     endClock;

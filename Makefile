@@ -89,6 +89,7 @@ run: $(BIN_DEBUG)
 	ASAN="halt_on_error=1:abort_on_error=1:verbosity=0:print_summary=0:fast_unwind_on_malloc=1:malloc_context_size=0"; \
 	UBSAN="print_stacktrace=1:halt_on_error=1"; \
 	set -o pipefail; \
+	ulimit -s 2097152; \
 	if env $$LDPRE ASAN_OPTIONS=$$ASAN UBSAN_OPTIONS=$$UBSAN '$(BIN_DEBUG)' < '$(INPUT)'; then \
 		: ; \
 	else \

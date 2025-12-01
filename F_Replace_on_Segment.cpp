@@ -64,16 +64,66 @@ const static ll INF = 4e18 + 10;
 const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
+const int N = 102;
+int dp1[N][N][N], dp2[N][N][N], a[N];
 void solve() {
+    int n, x; cin >> n >> x;
+    for(int i = 1; i <= n; i++) {
+        cin >> a[i];
+    }
+    for(int l = 1; l <= n; l++) {
+        for(int r = l; r <= n; r++) {
+            for(int k = 1; k <= x; k++) {
+                dp1[l][r][k] = dp2[l][r][k] = inf;
+            }
+        }
+    }
+    for(int i = 1; i <= n; i++) {
+        for(int k = 1; k <= x; k++) {
+            if(k == a[i]) {
+                dp1[i][i][k] = 0;
+                dp2[i][i][k] = 1;
+            } else {
+                dp1[i][i][k] = 1;
+                dp2[i][i][k] = 0;
+            }
+        }
+    }
+    for(int len = 2; len <= n; len++) {
+        for(int l = 1; l + len - 1 <= n; l++) {
+            int r = l + len - 1;
+            for(int k = 1; k <= x; k++) {
+                for(int p = l; p < r; p++) {
+                    dp1[l][r][k] = min(dp1[l][r][k], dp1[l][p][k] + dp1[p + 1][r][k]);
+                    dp2[l][r][k] = min(dp2[l][r][k], dp2[l][p][k] + dp2[p + 1][r][k]);
+                }
+            }
+            for(int k = 1; k <= x; k++) {
+                dp1[l][r][k] = min(dp1[l][r][k], dp2[l][r][k] + 1);
+            }
+            for(int k = 1; k <= x; k++) {
+                for(int y = 1; y <= x; y++) {
+                    if(y != k) {
+                        dp2[l][r][k] = min(dp2[l][r][k], dp1[l][r][y]);
+                    }
+                }
+            }
+        }
+    }
+    int res = inf;
+    for(int j = 1; j <= x; j++) {
+        res = min(res, dp1[1][n][j]);
+    }
+    cout << res << '\n';
 }
 
 signed main() {
     IOS;
     startClock
     int t = 1;
-    //cin >> t;
+    cin >> t;
     for(int i = 1; i <= t; i++) {   
-        //cout << "Case #" << i << ": ";  
+        // cout << "Case #" << i << ": ";  
         solve();
     }
     endClock;

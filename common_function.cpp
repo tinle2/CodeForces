@@ -1,96 +1,3 @@
-ll maxPerimeter(const vvi& grid) { // max_rectangle in a grid
-    int n = grid.size(), m = grid[0].size();
-    ll best = 0;
-    vi heights(m, 0), L(m), R(m);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < m; ++j)
-            heights[j] = (grid[i][j] == 0 ? heights[j] + 1 : 0);
-        stack<int> st;
-        for (int j = 0; j < m; ++j) {
-            while (!st.empty() && heights[st.top()] >= heights[j])
-                st.pop();
-            L[j] = st.empty() ? -1 : st.top();
-            st.push(j);
-        }
-        while (!st.empty()) st.pop();
-        for (int j = m - 1; j >= 0; --j) {
-            while (!st.empty() && heights[st.top()] >= heights[j])
-                st.pop();
-            R[j] = st.empty() ? m : st.top();
-            st.push(j);
-        }
-        for (int j = 0; j < m; ++j) {
-            int h = heights[j];
-            if (h == 0) continue;
-            int w = R[j] - L[j] - 1;
-            best = max(best, 2LL * (h + w));
-        }
-    }
-    return best;
-}
-
-struct digit_dp {
-    const static int L = 20;
-    const static int LCM = 2520;
-    ll dp[L][1 << 9][LCM];
-    ll pow[10];
-    digit_dp() {
-        init();
-    }
-
-    int check(ll rem, ll mask) {
-        int cnt = 0;
-        for(int i = 0; i < 10; i++) {
-            if(have_bit(mask, i) && rem % (i + 1)) return false;
-        }
-        return true;
-    }
-
-    void init() {
-        mset(dp, 0);
-        for(int d = 1; d < 10; d++) {
-            ll curr = 1;
-            for(int j = 0; j < d; j++) {
-                curr = (curr * d) % LCM;
-            }
-            pow[d] = curr;
-        }
-        for(int len = 0; len < L; len++) {
-            for(int mask = 0; mask < 1 << 9; mask++) {
-                for(int rem = 0; rem < LCM; rem++) {
-                    auto& res = dp[len][mask][rem];
-                    if(len == 0) {
-                        res = check(rem, mask); 
-                    } else {
-                        for(int digit = 0; digit < 10; digit++) {
-                            res += dp[len - 1][digit == 0 ? mask : mask | (1 << (digit - 1))][(rem + pow[digit]) % LCM];
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    ll count(ll n) {
-        string s = to_string(n); 
-        const int N = s.size();
-        int mask = 0, rem = 0;
-        ll res = 0;
-        for(int i = 0; i < N; i++) {
-            int len = N - i - 1;
-            int d = s[i] - '0';
-            for(int digit = 0; digit < d; digit++) {
-                res += dp[len][digit == 0 ? mask : mask | (1 << (digit - 1))][(rem + pow[digit]) % LCM];
-            }
-            if(d) mask |= 1 << (d - 1);
-            rem = (rem + pow[d]) % LCM;
-        }
-        res += check(rem, mask);
-        return res;
-    }
-}; digit_dp T;
-
 ll countPal(ll n) {
     // count palindrome <= n
     // https://lightoj.com/problem/palindromic-numbers
@@ -115,24 +22,6 @@ ll countPal(ll n) {
     }
     if(pal <= s) ans++;
     return ans + 1; // include "0"
-}
-
-template<typename T>
-ll LIS(vt<T>a, bool strict = false) { // strictly increasing or not
-    auto b(a);
-    if(strict) {
-        for(auto& x : a) b.pb(x - 1);
-    }
-    srtU(b);
-    const int N = b.size();
-    auto get_id = [&](T x) -> int {
-        return int(lb(all(b), x) - begin(b));
-    };
-    FW<T> root(N, 0, [](const T& a, const T& b) {return max(a, b);});
-    for(auto& x : a) {
-        root.update_at(get_id(x), root.get(get_id(x - strict)) + 1);
-    }
-    return root.get(N - 1);
 }
 
 ll min_lcm(ll l, ll r) {// find min_lcm of x, y such that x < y and L <= x < y <= R
@@ -576,38 +465,6 @@ pair<vi,vi> find_longest_cycle_bidirected_graph(const vvpii& graph){ // return a
     return {verts, eids};
 }
 
-ll nC2_vector(const std::vector<ll>& a) { // compute sum(a[i] * a[j]) over all pair
-    ll sum   = 0;
-    ll sumSq = 0;
-    for (ll x : a) {
-        sum   += x;
-        sumSq += x * x;
-    }
-    // (sum^2 - sum of squares) / 2 = Σ_{i<j} a[i]*a[j]
-    return (sum * sum - sumSq) / 2;
-}
-
-vi get_path(const vvi& graph, int s, int e) {
-    vi path;
-    auto dfs = [&](auto& dfs, int node, int par) -> bool {
-        if(node == e) {
-            path.pb(node);
-            return true;
-        } 
-        for(auto& nei : graph[node]) {
-            if(nei == par) continue;
-            if(dfs(dfs, nei, node)) {
-                path.pb(node);
-                return true;
-            }
-        }
-        return false;
-    };
-    dfs(dfs, s, -1);
-    rev(path);
-    return path;
-}
-
 bool is_symmetrical(const vvi& graph, int root = 0) {
     map<vi, int> hash_code;
     map<int, int> sym;
@@ -964,37 +821,6 @@ vi derangement(const vi& a) { // return an array where nothing is in the origina
         }
     }
     return b;
-}
-
-ar(3) find_max_median(const vi& a, int K) { // find max_median of len >= K
-	// https://codeforces.com/contest/2128/problem/E2
-	const int n = a.size();
-    auto f = [&](int x) -> pii {    
-        vi prefix(n + 1);   
-        for(int i = 1; i <= n; i++) {   
-            prefix[i] = prefix[i - 1] + (a[i - 1] >= x ? 1 : -1);
-        }
-        pii M = {-inf, -inf};
-        vpii mx(n + 1, M);   
-        for(int i = n; i >= 0; i--) {   
-            M = max(M, MP(prefix[i], i));
-            mx[i] = M;
-        }
-        for(int i = 0; i + K <= n; i++) {    
-            if(mx[i + K].ff >= prefix[i]) return {i, mx[i + K].ss - 1}; // this is ceil median, for floor make it >
-        }
-        return {-1, -1};
-    };
-    int left = MIN(a), right = MAX(a);
-    pii res;
-    int mx = 0;
-    while(left <= right) {
-        int middle = midPoint;
-        auto p = f(middle);
-        if(p.ff != -1) res = p, mx = middle, left = middle + 1;
-        else right = middle - 1;
-    }
-    return {mx, res.ff, res.ss};
 }
 
 template<typename T>
@@ -2083,4 +1909,36 @@ ll min_steps(ll b, ll d) { // while(b) b -= gcd(b, d), steps++; return steps
         b -= t * g;
     }
     return res;
+}
+
+ll step(ll a, ll b) { // while(a) [a, b] = [b, abs(a, b)], steps++;
+    // https://codeforces.com/contest/1848/problem/C
+    if(a == 0) return 0;
+    if(b == 0) return 1;
+    if(a >= b) {
+        ll r = a % b;
+        ll k = a / b;
+        // f[k] = f[k - 2] + 3;
+        return (k & 1 ? step(b, r) : step(r, b)) + k + k / 2;
+    }
+    return 1 + step(b, abs(a - b));
+}
+
+ll advance(ll n, ll k) { // n += n % 10 k times
+    if(k == 0) return n;
+    int d = n % 10;
+    if(d == 0) return n;
+    if(d == 5) {
+        if(k >= 1) n += 5;
+        return n;
+    }
+    int first_steps = min(4LL, k);
+    for(int i = 0; i < first_steps; i++) {
+        n += n % 10;
+    }
+    k -= first_steps;
+    n += 20 * (k / 4);
+    k %= 4;
+    while(k--) n += n % 10;
+    return n;
 }

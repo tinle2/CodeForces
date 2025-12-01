@@ -65,15 +65,58 @@ const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
 void solve() {
+    int n; cin >> n;
+    vi a(n + 1);
+    // i - n <= ai <= i - 1
+    //
+    // i - n <= ai
+    // i - ai <= n
+    //
+    // ai <= i - 1
+    // 1 <= i - ai <= n
+    for(int i = 1; i <= n; i++) {
+        cin >> a[i];
+    }
+    int st = 0;
+    vi vis(n + 1);
+    vi ans;
+    stack<int> s;
+    auto dfs = [&](auto& dfs, int u = 1) -> void {
+        if(vis[u]) return;
+        if(!ans.empty()) return;
+        vis[u] = 1;
+        int v = u - a[u];
+        s.push(u);
+        if(!vis[v]) {
+            dfs(dfs, v); 
+        } else {
+            while(true) {
+                int node = s.top();
+                s.pop();
+                ans.pb(node);
+                if(node == v) break;
+            }
+            return;
+        }
+    };
+    dfs(dfs);
+    // i1 - a1 = i2
+    // i2 - a2 = i3
+    // i3 - a3 = i1
+    cout << ans.size() << '\n';
+    for(auto& x : ans) {
+        cout << x << ' ';
+    }
+    cout << '\n';
 }
 
 signed main() {
     IOS;
     startClock
     int t = 1;
-    //cin >> t;
+    cin >> t;
     for(int i = 1; i <= t; i++) {   
-        //cout << "Case #" << i << ": ";  
+        // cout << "Case #" << i << ": ";  
         solve();
     }
     endClock;

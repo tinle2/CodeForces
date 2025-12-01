@@ -240,6 +240,7 @@ public:
     }
 };
 
+https://codeforces.com/contest/1749/problem/F?adcd1e=caf4f277g6k8yy&csrf_token=6beea33a44ff1d0047d81022f5bd54ff&__cf_chl_tk=NS60GPs8ohrOPuSQY5cYAm5P2tPa3R.GhNrP4ZSVgWc-1764193587-1.0.1.1-LIrQY9Yh5ok.CX3Gu70kyj8yufbK16TomCmbCxKEPj4
 template<class T, typename TT = int, typename F = function<T(const T&, const T&)>>
 class HLD {
     private:
@@ -1573,6 +1574,7 @@ struct block_cut_tree {
     }
 
     void build() {
+		// bipartile of comp -> articulation point -> comp -> articulation point
         int B = comps.size(); 
         is_simple_cycle.rsz(m);
         comp_vertices = vvi(B);

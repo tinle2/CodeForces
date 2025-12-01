@@ -64,7 +64,101 @@ const static ll INF = 4e18 + 10;
 const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
+int dp[20][20];
+int a[20];
+int choose[20][20];
 void solve() {
+    int n; cin >> n;
+    for(int i = 1; i <= n; i++) {
+        cin >> a[i];
+    }
+    memset(dp, -1, sizeof(dp));
+    // 0 0 0 0 0
+    // 1 0 0 0 0
+    // 2 1 0 0 0
+    // 3 3 3 0 0
+    // 3 0 0 0 0
+    // 3 1 0 0 0
+    // 3 2 2 0 0
+    // 3 2 1 0 0
+    // 4 4 4 4 4
+    // 4 
+    {
+        auto dfs = [&](auto& dfs, int l, int r) -> int {
+            if(l > r) return 0; 
+            if(l == r) {
+                return a[l] == 0 ? 1 : a[l];
+            }
+            auto& res = dp[l][r];
+            if(res != -1) return res;
+            res = (r - l + 1) * (r - l + 1);
+            for(int k = l; k <= r; k++) {
+                auto v = dfs(dfs, l, k - 1) + dfs(dfs, k + 1, r) + (a[k] == 0 ? 1 : a[k]);
+                if(v > res) {
+                    choose[l][r] = k;
+                    res = v;
+                }
+            }
+            return res;
+        };
+        cout << dfs(dfs, 1, n) << ' ';
+    }
+    vpii ops;
+    {
+        auto op = [&](int l, int r) -> void {
+            int s[30] = {};
+            for(int i = l; i <= r; i++) {
+                if(a[i] <= 25) {
+                    s[a[i]] = 1;
+                }
+            }
+            int mex = 0;
+            while(s[mex]) mex++;
+            for(int i = l; i <= r; i++) {
+                a[i] = mex;
+            }
+            ops.pb({l, r});
+        };
+        auto run = [&](auto& run, int l, int r) -> void {
+            if(l > r) return;
+            if(l == r) {
+                while(a[l] != 1) {
+                    op(l, r);
+                }
+                return;
+            }
+            for(int j = r - 1; j >= l; j--) {
+                run(run, l, j);
+            }
+            while(a[r] != 0) {
+                op(r, r);
+            }
+            op(l, r);
+            assert(a[r] == r - l + 1);
+        };
+        auto dfs = [&](auto& dfs, int l, int r) -> void {
+            if(l > r) return;
+            if(l == r) {
+                if(a[l] == 0) {
+                    ops.pb({l, l});
+                }
+                return;
+            }
+            int k = choose[l][r];
+            if(k == 0) {
+                run(run, l, r);
+                return;
+            }
+            dfs(dfs, l, k - 1);
+            dfs(dfs, k, k);
+            dfs(dfs, k + 1, r);
+        };
+        dfs(dfs, 1, n);
+    }
+    cout << ops.size() << '\n';
+    for(auto& [l, r] : ops) {
+        cout << l << ' ' << r << '\n';
+    }
 }
 
 signed main() {

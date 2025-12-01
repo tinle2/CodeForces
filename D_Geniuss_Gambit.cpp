@@ -65,6 +65,36 @@ const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
 void solve() {
+    int a, b, k; cin >> a >> b >> k;
+    if(k == 0) {
+        string s = string(a + b, '0');
+        for(int i = 0; i < b; i++) {
+            s[i] = '1';
+        }
+        cout << "YES" << '\n' << s << '\n' << s << '\n';
+        return;
+    }
+    if(a == 0 || b == 1) {
+        cout << "NO" << '\n';
+        return;
+    }
+    const int N = a + b;
+    string s = string(N, '0');
+    string t = s;
+    int j = N - k - 1;
+    if(j <= 0) {
+        cout << "NO" << '\n';
+        return;
+    }
+    s[0] = t[0] = s[j] = t[N - 1] = '1';
+    b -= 2;
+    for(int i = 1; i < N && b; i++) {
+        if(s[i] == '0' && t[i] == '0') {
+            b--;
+            s[i] = t[i] = '1';
+        }
+    }
+    cout << "YES" << '\n' << s << '\n' << t << '\n';
 }
 
 signed main() {
@@ -73,7 +103,7 @@ signed main() {
     int t = 1;
     //cin >> t;
     for(int i = 1; i <= t; i++) {   
-        //cout << "Case #" << i << ": ";  
+        // cout << "Case #" << i << ": ";  
         solve();
     }
     endClock;

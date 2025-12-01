@@ -23,6 +23,51 @@ struct Point {
     }
 };
 
+Point operator+(Point a, Point b) { return {a.x + b.x, a.y + b.y}; }
+Point operator-(Point a, Point b) { return {a.x - b.x, a.y - b.y}; }
+Point operator*(ll t, Point b) { return {t * b.x, t * b.y}; }
+
+ll operator*(Point a, Point b) { return a.x * b.x + a.y * b.y; } // dot product
+ll operator%(Point a, Point b) { return a.x * b.y - a.y * b.x; } // cross product
+
+bool operator<(Point a, Point b) { // lexicographical compare
+	if (a.x != b.x) return a.x < b.x;
+	return a.y < b.y;
+}
+
+ostream &operator<<(ostream &out, Point a) { // for debugging
+	return out << "(" << a.x << "," << a.y << ")";
+}
+
+ll abs2(Point a) { return a * a; }
+Point perp(Point a) { return {-a.y, a.x}; } // rotate 90 degrees counterclockwise
+
+int ccw(Point a, Point b, Point c) { // returns 1|0|-1 if c is left|straight|right of ab
+	ll res = (b-a) % (c-a);
+	return res ? (res > 0 ? 1 : -1) : 0;
+}
+
+bool on_segment(Point p, Point a, Point b) {
+	return (a - p) * (b - p) <= 0 && ccw(a, b, p) == 0;
+}
+
+string Point_in_polygon(const vector<Point> &a, Point p) {
+	int n = a.size();
+	if(ccw(a[0], a[1], p) < 0 || ccw(a[0], a[n - 1], p) > 0) return "OUT";
+	if(ccw(a[0], a[1], p) == 0) return on_segment(p, a[0], a[1]) ? "ON" : "OUT";
+	if(ccw(a[0], a[n - 1], p) == 0) return on_segment(p, a[0], a[n - 1]) ? "ON" : "OUT";
+
+	int lo = 1, hi = n - 1;
+	while(hi - lo > 1) {
+		int md = (lo + hi)/2;
+		(ccw(a[0], a[md], p) >= 0 ? lo : hi) = md;
+	}
+	assert(ccw(a[0], a[lo], p) >= 0);
+	assert(ccw(a[0], a[hi], p) < 0);
+	int s = ccw(a[lo], a[hi], p);
+	return s == 1 ? "IN" : (s == 0 ? "ON" : "OUT");
+}
+
 // Normalize (A, B, C) so that gcd(A, B, C) = 1 and A >= 0 (if A == 0, B >= 0)
 void normalize_abc(ll &A, ll &B, ll &C) {
     ll g = std::gcd(std::gcd(std::abs(A), std::abs(B)), std::abs(C));

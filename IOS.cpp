@@ -1,53 +1,222 @@
-namespace IO {
-    const int BUFFER_SIZE = 1 << 15;
- 
-    char input_buffer[BUFFER_SIZE];
-    int input_pos = 0, input_len = 0;
- 
-    void _update_input_buffer() {
-        input_len = fread(input_buffer, sizeof(char), BUFFER_SIZE, stdin);
-        input_pos = 0;
- 
-        if (input_len == 0)
-            input_buffer[0] = EOF;
-    }
- 
-    inline char next_char(bool advance = true) {
-        if (input_pos >= input_len)
-            _update_input_buffer();
- 
-        return input_buffer[advance ? input_pos++ : input_pos];
-    }
- 
-    template<typename T>
-    inline void read_int(T &number) {
-        bool negative = false;
-        number = 0;
- 
-        while (!isdigit(next_char(false)))
-            if (next_char() == '-')
-                negative = true;
- 
-        do {
-            number = 10 * number + (next_char() - '0');
-        } while (isdigit(next_char(false)));
- 
-        if (negative)
-            number = -number;
-    }
- 
-    template<typename T, typename... Args>
-    inline void read_int(T &number, Args &... args) {
-        read_int(number);
-        read_int(args...);
+namespace FastIO {
+    static const size_t BUF_SIZE = 1 << 16;
+
+    static char ibuf[BUF_SIZE];
+    static char obuf[BUF_SIZE];
+
+    static size_t ipos = 0, ilen = 0, opos = 0;
+    static bool use_fread = false;
+
+    inline void init() {
+        use_fread = false;
     }
 
-    inline ll nxt() {
-        ll x;
-        read_int(x);
-        return x;
+    inline char next_getchar() {
+        int c = getchar();
+        return (c == EOF) ? 0 : (char)c;
     }
+
+    inline void refill() {
+        ilen = fread(ibuf, 1, BUF_SIZE, stdin);
+        ipos = 0;
+    }
+
+    inline char next_fread() {
+        if (ipos >= ilen) refill();
+        if (ilen == 0) return 0;
+
+        return ibuf[ipos++];
+    }
+
+    inline char next_char() {
+        return use_fread ? next_fread() : next_getchar();
+    }
+
+    inline bool is_space(char c) {
+        return c != 0 and c <= ' ';
+    }
+
+    inline int read_int() {
+        char c; int x = 0, neg = 0;
+
+        do c = next_char();
+        while (is_space(c));
+
+        if (c == 0) return 0;
+        if (c == '-') neg = 1, c = next_char();
+
+        for (; c >= '0' and c <= '9'; c = next_char()) x = x * 10 + (c - '0');
+
+        return neg ? -x : x;
+    }
+
+    inline ll read_ll() {
+        char c; ll x = 0, neg = 0;
+
+        do c = next_char();
+        while (is_space(c));
+
+        if (c == 0) return 0;
+        if (c == '-') neg = 1, c = next_char();
+
+        for (; c >= '0' and c <= '9'; c = next_char()) x = x * 10 + (c - '0');
+
+        return neg ? -x : x;
+    }
+
+    inline char read_char() {
+        char c;
+
+        do c = next_char();
+        while (is_space(c));
+
+        return c;
+    }
+
+    inline string read_string() {
+        string s; char c;
+
+        do c = next_char();
+        while (is_space(c));
+
+        for (; c != 0 and c > ' '; c = next_char()) s.push_back(c);
+
+        return s;
+    }
+
+    inline void flush_output() {
+        if (opos) fwrite(obuf, 1, opos, stdout), opos = 0;
+    }
+
+    inline void write_char(char c) {
+        if (opos >= BUF_SIZE) flush_output();
+        obuf[opos++] = c;
+    }
+
+    inline void print_int(int x, char endc = '\n') {
+        if (x == 0) {
+            write_char('0');
+            if (endc) write_char(endc);
+
+            return;
+        }
+        if (x < 0) write_char('-'), x = -x;
+
+        char buf[20]; int i = 0;
+
+        while (x) buf[i++] = '0' + (x % 10), x /= 10;
+        while (i--) write_char(buf[i]);
+
+        if (endc) write_char(endc);
+    }
+
+    inline void print_ll(ll x, char endc = '\n') {
+        if (x == 0) {
+            write_char('0');
+            if (endc) write_char(endc);
+
+            return;
+        }
+        if (x < 0) write_char('-'), x = -x;
+
+        char buf[25]; int i = 0;
+
+        while (x) buf[i++] = '0' + (x % 10), x /= 10;
+        while (i--) write_char(buf[i]);
+
+        if (endc) write_char(endc);
+    }
+
+    inline void print_char(char c, char endc = '\n') {
+        write_char(c);
+        if (endc) write_char(endc);
+    }
+
+    inline void print_string(const string& s, char endc = '\n') {
+        for (char c : s) write_char(c);
+        if (endc) write_char(endc);
+    }
+
+    struct Flusher {
+        ~Flusher() {
+            flush_output();
+        }
+    } static flusher;
 }
+
+using namespace FastIO;
+
+namespace FastIO {
+    struct FastInput {
+        FastInput() {
+            FastIO::init();
+        }
+
+        FastInput& operator>>(int &x) {
+            x = FastIO::read_int();
+            return *this;
+        }
+
+        FastInput& operator>>(long long &x) {
+            x = FastIO::read_ll();
+            return *this;
+        }
+
+        FastInput& operator>>(char &c) {
+            c = FastIO::read_char();
+            return *this;
+        }
+
+        FastInput& operator>>(std::string &s) {
+            s = FastIO::read_string();
+            return *this;
+        }
+    };
+
+    struct FastOutput {
+        FastOutput& operator<<(int x) {
+            FastIO::print_int(x, 0);
+            return *this;
+        }
+
+        FastOutput& operator<<(long long x) {
+            FastIO::print_ll(x, 0);
+            return *this;
+        }
+
+        FastOutput& operator<<(char c) {
+            FastIO::write_char(c);
+            return *this;
+        }
+
+        FastOutput& operator<<(const char *s) {
+            while (*s) FastIO::write_char(*s++);
+            return *this;
+        }
+
+        FastOutput& operator<<(const std::string &s) {
+            FastIO::print_string(s, 0);
+            return *this;
+        }
+
+        using Manip = FastOutput& (*)(FastOutput&);
+        FastOutput& operator<<(Manip f) {
+            return f(*this);
+        }
+    };
+
+    inline FastOutput& endl(FastOutput &out) {
+        FastIO::write_char('\n');
+        return out;
+    }
+
+    static FastInput  fin;
+    static FastOutput fout;
+
+}
+using FastIO::fin;
+using FastIO::fout;
+
 
 #pragma GCC optimize("Ofast")
 
@@ -95,60 +264,3 @@ namespace IO {
 #pragma GCC optimize("-ftree-pre")
 #pragma GCC optimize("-ftree-vrp")
 #pragma GCC target("avx")
-
-const int BUF_SZ = 1 << 15; // do init_output() at the start of the main function
-
-inline namespace Input {
-    char buf[BUF_SZ];
-    int pos;
-    int len;
-    char next_char() {
-        if (pos == len) {
-            pos = 0;
-            len = (int)fread(buf, 1, BUF_SZ, stdin);
-            if (!len) { return EOF; }
-        }
-        return buf[pos++];
-    }
-
-    int read_int() {
-        int x;
-        char ch;
-        int sgn = 1;
-        while (!isdigit(ch = next_char())) {
-            if (ch == '-') { sgn *= -1; }
-        }
-        x = ch - '0';
-        while (isdigit(ch = next_char())) { x = x * 10 + (ch - '0'); }
-        return x * sgn;
-    }
-}
-inline namespace Output {
-    char buf[BUF_SZ];
-    int pos;
-
-    void flush_out() {
-        fwrite(buf, 1, pos, stdout);
-        pos = 0;
-    }
-
-    void write_char(char c) {
-        if (pos == BUF_SZ) { flush_out(); }
-        buf[pos++] = c;
-    }
-
-    void write_int(ll x) {
-        static char num_buf[100];
-        if (x < 0) {
-            write_char('-');
-            x *= -1;
-        }
-        int len = 0;
-        for (; x >= 10; x /= 10) { num_buf[len++] = (char)('0' + (x % 10)); }
-        write_char((char)('0' + x));
-        while (len) { write_char(num_buf[--len]); }
-        write_char('\n');
-    }
-
-    void init_output() { assert(atexit(flush_out) == 0); }
-}
