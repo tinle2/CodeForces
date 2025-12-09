@@ -65,6 +65,10 @@ const static int inf = 1e9 + 100;
 const static int MX = 1e5 + 5;
 
 void solve() {
+    int cnt = 0;
+    while(cin >> ws && cnt++ < 10) {}
+    int n; cin >> n;
+    debug(n);
 }
 
 signed main() {

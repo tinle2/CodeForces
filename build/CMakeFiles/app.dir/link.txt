@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -O1 -g -fno-omit-frame-pointer CMakeFiles/app.dir/submit.cpp.o -o app 

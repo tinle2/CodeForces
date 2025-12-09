@@ -7,6 +7,7 @@
 #define pushDown push(i, left, right)
 #define iter int i, int left, int right
 
+//https://atcoder.jp/contests/abc434/tasks/abc434_g
 template<typename T, typename I = ll, typename II = ll, typename F = function<T(const T, const T)>>
 class SGT { 
     public: 
@@ -20,6 +21,21 @@ class SGT {
 		int k = 1;
         while(k < n) k <<= 1; 
         root.rsz(k << 1, DEFAULT);    
+    }
+	
+	void build(const vi& a) {
+        build(entireTree, a);
+    }
+
+    void build(iter, const vi &a) {
+        if(left == right) {
+            root[i] = info(a[left]);
+            return;
+        }
+        int middle = (left + right) / 2;
+        build(lp, a);
+        build(rp, a);
+        root[i] = merge(lc, root[lc], root[rc]);
     }
     
     void update_at(int id, T val) {  
@@ -171,6 +187,13 @@ public:
         size = 1;
         while(size < _n) size <<= 1;
         root.assign(size << 1, _DEFAULT);
+    }
+	
+	void build(const vector<T>& a) {
+        for(int i = 0; i < n; i++) 
+            root[size + i] = a[i];
+        for(int i = size - 1; i > 0; i--) 
+            root[i] = root[i << 1] + root[i << 1 | 1];
     }
     
     void update_at(int idx, T val) {
@@ -3210,5 +3233,154 @@ struct nc2_tree_info { // track sum of nc2 for whole tree
         res.s = a.s + b.s;
         res.empty = 0;
         return res;
+    }
+};
+
+struct overlapping_info { // find maximum a[l1, r1] + b[l2, r2] where max(l1, l2) <= min(r1, r2)
+    // https://www.codechef.com/problems/INTINTHD
+    ll ans, prefix[2], suffix[2], sm[2], Pre[2], Suf[2], full[2], t[2], z[2];
+    overlapping_info(ll _a = -INF, ll _b = -INF) {
+        sm[0] = _a;
+        sm[1] = _b;
+        if(_a == -INF) return;
+        prefix[0] = suffix[0] = t[0] = _a;
+        prefix[1] = suffix[1] = t[1] = _b;
+        ans = Pre[0] = Pre[1] = Suf[0] = Suf[1] = full[0] = full[1] = z[0] = z[1] = _a + _b;
+    }
+
+    friend overlapping_info operator+(const overlapping_info& a, const overlapping_info& b) {
+        if(a.sm[0] == -INF) return b;
+        if(b.sm[0] == -INF) return a;
+        overlapping_info res;
+        auto choose1 = [](ll x, ll y) -> ll {
+            return max({x + y, max(0ll, x) + y, x + max(0ll, y)});
+        };
+        ll A = max(0ll, a.suffix[0]) + max(0ll, a.suffix[1]);
+        ll B = max(0ll, b.prefix[0]) + max(0ll, b.prefix[1]);
+        res.ans = max({a.ans, b.ans, a.suffix[0] + a.suffix[1] + B, b.prefix[0] + b.prefix[1] + A});
+        for(int i = 0; i < 2; i++) {
+            res.sm[i] = a.sm[i] + b.sm[i];
+            res.prefix[i] = max(a.prefix[i], a.sm[i] + b.prefix[i]);
+            res.suffix[i] = max(b.suffix[i], b.sm[i] + a.suffix[i]);
+            res.t[i] = max({a.t[i], b.t[i], a.suffix[i] + b.prefix[i]});
+            res.z[i] = max({a.z[i] + b.sm[!i], b.z[i] + a.sm[i], a.sm[i] + b.sm[!i] + choose1(a.suffix[!i], b.prefix[i])});
+        }
+        for(int i = 0; i < 2; i++) {
+            res.Pre[i] = max({a.Pre[i], res.prefix[0] + res.prefix[1], 
+                            a.full[i] + b.prefix[i], a.sm[i] + b.Pre[i], 
+                            a.sm[i] + max(0ll, b.prefix[i]) + max(a.t[!i], (a.suffix[!i] + b.prefix[!i])), 
+                            a.sm[0] + a.sm[1] + max(0ll, b.prefix[i]) + max(0ll, b.prefix[!i]),
+                            a.z[i] + b.prefix[!i]
+            });
+            res.Suf[i] = max({b.Suf[i], res.suffix[0] + res.suffix[1], 
+                            b.full[i] + a.suffix[i], b.sm[i] + a.Suf[i], 
+                            b.sm[i] + max(0ll, a.suffix[i]) + max(b.t[!i], (b.prefix[!i] + a.suffix[!i])),
+                            b.sm[0] + b.sm[1] + max(0ll, a.suffix[i]) + max(0ll, a.suffix[!i]),
+                            b.z[!i] + a.suffix[!i]
+            });
+            res.full[i] = max({a.full[i] + b.sm[i], b.full[i] + a.sm[i], a.sm[i] + b.sm[i] + res.t[!i]});
+            res.ans = max(res.ans, b.Pre[i] + a.suffix[i]);
+            res.ans = max(res.ans, a.Suf[i] + b.prefix[i]);
+        }
+        return res;
+    }
+};
+// this info class is the simpler info of the above overlapping_info
+struct info {
+    const static int K = 7;
+    ll dp[K][K];
+    int empty;
+    info(int x = -inf, int y = -inf) : empty(x == -inf) {
+        for(auto& it : dp) {
+            fill(all(it), -INF);
+        }
+        if(empty) return;
+        // 0, prea, preb, both, posta, postb, ans
+        dp[0][0] = dp[6][6] = 0;
+        dp[0][1] = dp[1][1] = dp[3][4] = dp[4][4] = x;
+        dp[0][2] = dp[2][2] = dp[3][5] = dp[5][5] = y;
+        dp[0][3] = dp[0][6] = dp[1][3] = dp[2][3] = dp[3][3] = dp[1][6] = dp[2][6] = x + y;
+        dp[4][6] = max(0, x);
+        dp[5][6] = max(0, y);
+        dp[3][6] = dp[4][6] + dp[5][6];
+    }
+
+    friend info operator+(const info& a, const info& b) {
+        if(a.empty) return b;
+        if(b.empty) return a;
+        info res;
+        res.empty = false;
+        for(int i = 0; i < K; i++) {
+            for(int k = i; k < K; k++) {
+                if(a.dp[i][k] == -INF) continue;
+                for(int j = k; j < K; j++) {
+                    if(b.dp[k][j] == -INF) continue;
+                    res.dp[i][j] = max(res.dp[i][j], a.dp[i][k] + b.dp[k][j]);
+                }
+            }
+        }
+        return res;
+    }
+};
+
+struct parity_subarray_info {
+    // https://codeforces.com/gym/106250/problem/G
+    static int P(int x) {
+        return abs(x) & 1;
+    }
+    int pre_mn[2], suf_mn[2], pre_mx[2], suf_mx[2], ans_mn[2], ans_mx[2], sm;
+    int empty;
+    parity_subarray_info(int x = -inf) : empty(x == -inf) {
+        if(empty) return;
+        fill(all(pre_mn), inf);
+        fill(all(pre_mx), -inf);
+        fill(all(suf_mn), inf);
+        fill(all(suf_mx), -inf);
+        fill(all(ans_mn), inf);
+        fill(all(ans_mx), -inf);
+        sm = x;
+        int t = P(x);
+        pre_mn[t] = suf_mn[t] = ans_mn[t] = x;
+        pre_mx[t] = suf_mx[t] = ans_mx[t] = x;
+    }
+
+    friend parity_subarray_info operator+(const parity_subarray_info& a, const parity_subarray_info& b) {
+        if(a.empty) return b;
+        if(b.empty) return a;
+        parity_subarray_info res;
+        res.empty = 0;
+        res.sm = a.sm + b.sm;
+        for(int i = 0; i < 2; i++) {
+            res.pre_mn[i] = a.pre_mn[i];
+            res.pre_mx[i] = a.pre_mx[i];
+            res.suf_mn[i] = b.suf_mn[i];
+            res.suf_mx[i] = b.suf_mx[i];
+            res.ans_mn[i] = min(a.ans_mn[i], b.ans_mn[i]);
+            res.ans_mx[i] = max(a.ans_mx[i], b.ans_mx[i]);
+        }
+        for(int i = 0; i < 2; i++) {
+            {
+                int ni = i ^ P(a.sm);
+                res.pre_mn[ni] = min(res.pre_mn[ni], a.sm + b.pre_mn[i]);
+                res.pre_mx[ni] = max(res.pre_mx[ni], a.sm + b.pre_mx[i]);
+            }
+            {
+                int ni = i ^ P(b.sm);
+                res.suf_mn[ni] = min(res.suf_mn[ni], b.sm + a.suf_mn[i]);
+                res.suf_mx[ni] = max(res.suf_mx[ni], b.sm + a.suf_mx[i]);
+            }
+        }
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 2; j++) {
+                res.ans_mn[i ^ j] = min(res.ans_mn[i ^ j], a.suf_mn[i] + b.pre_mn[j]);
+                res.ans_mx[i ^ j] = max(res.ans_mx[i ^ j], a.suf_mx[i] + b.pre_mx[j]);
+            }
+        }
+        return res;
+    }
+
+    int contain(int x) const {
+        int p = P(x);
+        return ans_mn[p] <= x && x <= ans_mx[p];
     }
 };

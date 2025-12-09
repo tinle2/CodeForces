@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/tinle2/CodeForces/build",
-  "command": "/usr/bin/c++ -D_GLIBCXX_DEBUG  -g -std=c++23 -fdiagnostics-color=always -Wall -Wextra -Wshadow -O1 -g -fno-omit-frame-pointer -o CMakeFiles/app.dir/submit.cpp.o -c /home/tinle2/CodeForces/submit.cpp",
-  "file": "/home/tinle2/CodeForces/submit.cpp",
-  "output": "CMakeFiles/app.dir/submit.cpp.o"
-}
-]

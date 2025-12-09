@@ -3115,6 +3115,39 @@ bitset<K> possible_subsets_knapsack(int n, const vi &sizes) {
     return knapsack;
 }
 
+template<int K>
+bitset<K> apply_shifts(const bitset<K>& dp, vector<int> b) { // apply ndp |= dp << shift in log times
+	// https://www.facebook.com/codingcompetitions/hacker-cup/2025/round-3/problems/C
+    bitset<K> ndp;
+    int sz = (int)b.size();
+    if(sz == 0) return ndp;
+    sort(b.begin(), b.end());
+    int beg = 0;
+    while(beg < sz) {
+        int end = beg;
+        while(end + 1 < sz && (end == beg || b[end + 1] + b[end - 1] == 2 * b[end])) {
+            end++;
+        }
+
+        bitset<K> add = dp << b[beg];
+
+        if(beg < end) {
+            int diff  = b[beg + 1] - b[beg];
+            int steps = end - beg;
+            for(int q = 0; (1 << q) <= steps; q++) {
+                add |= add << (diff * (1 << q));
+                steps -= 1 << q;
+            }
+            add |= add << (diff * steps);
+        }
+
+        ndp |= add;
+        beg = end + 1;
+    }
+    return ndp;
+}
+
+
 vi min_knapsack(int n, const vi& a) { // return a vector which a[i] is min_element to reach sum_i, sum is bounded by n, giving n * sqrt(n) * log(n) sometime faster
     // https://codeforces.com/contest/95/problem/E
     vi count(n + 1, 0);

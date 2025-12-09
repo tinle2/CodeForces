@@ -1942,3 +1942,53 @@ ll advance(ll n, ll k) { // n += n % 10 k times
     while(k--) n += n % 10;
     return n;
 }
+
+vi lexicographically_smallest_derangement(const vi& a) {
+    int n = a.size();
+    if(n == 0) return {};
+    vi suf_same(n + 2, 0);
+    vi suf_val(n + 2, 0);
+
+    suf_same[n] = 1;
+    suf_val[n] = a[n - 1];
+    for(int i = n - 1; i >= 1; --i) {
+        if(suf_same[i + 1] && a[i - 1] == suf_val[i + 1]) {
+            suf_same[i] = 1;
+            suf_val[i] = a[i - 1];
+        }
+    }
+    set<int> rem;
+    for(int v = 1; v <= n; ++v) {
+        rem.insert(v);
+    }
+    vi p(n + 1, 0);
+
+    for(int i = 1; i <= n; ++i) {
+        int need = false;
+        int v = 0;
+
+        if(i < n && suf_same[i + 1]) {
+            v = suf_val[i + 1];
+            if(1 <= v && v <= n && rem.count(v)) need = true;
+        }
+
+        int x = -1;
+        if(need) {
+            if (a[i - 1] == v) return {};
+            x = v;
+        } else {
+            auto it = rem.begin();
+            if(it == rem.end()) return {};
+            x = *it;
+            if(x == a[i - 1]) {
+                ++it;
+                if(it == rem.end()) return {};
+                x = *it;
+            }
+        }
+
+        p[i] = x;
+        rem.erase(x);
+    }
+    return vi(p.begin() + 1, p.end());
+}

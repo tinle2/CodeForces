@@ -683,6 +683,10 @@ struct KMP {
             }
         }
     }
+	
+	int period() {
+		return n % (n - prefix.back()) == 0 ? n - prefix.back() : n;
+	}
 
     int count_substring(const string& s) { // s is main string, t is pattern
         int N = s.size();
