@@ -12,7 +12,7 @@ template<typename T, typename I = ll, typename II = ll, typename F = function<T(
 class SGT { 
     public: 
     int n;  
-    vt<T> root;
+    vector<T> root;
     T DEFAULT;
     F func;
 	SGT(int n, T DEFAULT = T(), F func = [](const auto& a, const auto& b) {return a + b;}) : func(func) {    
@@ -20,7 +20,7 @@ class SGT {
         this->DEFAULT = DEFAULT;
 		int k = 1;
         while(k < n) k <<= 1; 
-        root.rsz(k << 1, DEFAULT);    
+        root.resize(k << 1, DEFAULT);    
     }
 	
 	void build(const vi& a) {
@@ -177,7 +177,7 @@ class basic_segtree {
 public:
     int n;    
     int size;  
-    vt<T> root;
+    vector<T> root;
     F func;
     T DEFAULT;  
     
@@ -291,7 +291,7 @@ public:
 template<typename T, typename lazy_type = ll>
 struct lazy_seg {
     int n, n0, h;
-    vt<T> tree;
+    vector<T> tree;
     vi seglen;
 
     lazy_seg(int n_) : n(n_) , n0(1) , h(0) {
@@ -636,7 +636,7 @@ template<typename T, typename F = function<T(const T, const T)>>
 class arithmetic_segtree { // add a + d * (i - left) to [left, right] 
     public: 
     int n;  
-    vt<T> root;
+    vector<T> root;
     vpll lazy;
     T DEFAULT;
     F func;
@@ -644,8 +644,8 @@ class arithmetic_segtree { // add a + d * (i - left) to [left, right]
 	arithmetic_segtree(int n, T DEFAULT, F func = [](const T a, const T b) {return a + b;}, bool is_prefix = true, bool inclusive = true) : n(n), DEFAULT(DEFAULT), is_prefix(is_prefix), inclusive(inclusive), func(func) {    
 		int k = 1;
         while(k < n) k <<= 1; 
-        root.rsz(k << 1);    
-        lazy.rsz(k << 1); 
+        root.resize(k << 1);    
+        lazy.resize(k << 1); 
     }
     
     void update_at(int id, T val) {  
@@ -750,13 +750,13 @@ template<typename T>
 struct merge_sort_tree {
     int n;
     vvi arr;
-    vt<T> root;
+    vector<T> root;
     int res = inf;
     merge_sort_tree(const vi& a) : n(a.size()) {
         int k = 1;
         while(k < n) k <<= 1;
-        arr.rsz(k * 2);
-        root.rsz(k * 2);
+        arr.resize(k * 2);
+        root.resize(k * 2);
         build(entireTree, a);
     }
 
@@ -819,12 +819,12 @@ class bad_subarray_segtree {
     };
     public: 
     int n;  
-    vt<info> root;
+    vector<info> root;
 	bad_subarray_segtree(int n) {    
         this->n = n;
 		int k = 1;
         while(k < n) k <<= 1; 
-        root.rsz(k << 1, info());    
+        root.resize(k << 1, info());    
     }
     
     void update_at(int id, int val) {  
@@ -874,7 +874,7 @@ struct wavelet_psgt {
         friend Node operator-(const Node& x, const Node& y) { return {x.cnt - y.cnt, x.sm - y.sm}; };
     };
     int n;
-    vt<Node> root;
+    vector<Node> root;
     vi t;
     vpii child;
     vi a;
@@ -884,7 +884,7 @@ struct wavelet_psgt {
     wavelet_psgt() {}
 
     wavelet_psgt(const vi& arr) : a(arr) {
-        t.rsz(arr.size());
+        t.resize(arr.size());
         new_node(); 
         srtU(a);
         n = a.size();
@@ -1019,7 +1019,7 @@ struct PSGT {
         F.pb(0);
         return F.size() - 1;
     }
-    vt<Node> F;
+    vector<Node> F;
     vi t;
     int n;
     T DEFAULT;
@@ -1104,6 +1104,32 @@ struct PSGT {
     T merge(T left, T right) {
         return left + right;
     }
+	
+	template<typename Pred> // seg.min_left(ending, [](const int& a) {return a > 0;});
+        int min_left(int ver, int ending, Pred f) { // min index where f[l, ending] is true
+            T a = DEFAULT;
+            auto ans = find_left(t[ver], 0, n - 1, ending, f, a);
+            return ans == -1 ? ending + 1 : ans;
+        }
+
+    template<typename Pred>
+        int find_left(int i, int left, int right, int end, Pred f, T& now) {
+            if(left > end) return -2;
+            if(right <= end && f(merge(F[i].key, now))) {
+                now = merge(F[i].key, now);
+                return left;
+            }
+            if(left == right) return -1;
+            int middle = (left + right) >> 1;
+            int r = find_left(F[i].r, middle + 1, right, end, f, now);
+            if(r == -2) return find_left(F[i].l, left, middle, end, f, now);
+            if(r == middle + 1) {
+                int l = find_left(F[i].l, left, middle, end, f, now);
+                if(l != -1) return l;
+            }
+            return r;
+        }
+
 };
 
 struct mex_tree {
@@ -1303,7 +1329,7 @@ struct mod_tree { // n*sqrtn*logn for printing queries [l, r, x] sum a[i] % x fo
     mod_tree(const vi& a) : tree(1, 1, 0) {
         min_heap<pii> q;
         int n = a.size();
-        prefix.rsz(n + 1);
+        prefix.resize(n + 1);
         for(int i = 0; i < n; i++) {
             prefix[i + 1] = prefix[i] + a[i];
             q.push({1, i});
@@ -1365,7 +1391,7 @@ struct lazy_PSGT {
         }
     };
 
-    vt<Node> F;
+    vector<Node> F;
     vi t;
     int n;
     T DEFAULT;
@@ -1458,7 +1484,7 @@ struct lazy_PSGT {
 
 template<class T>
 struct SGT_2D {
-    vt<vt<T>> root;
+    vector<vector<T>> root;
     int n, m, N;           
     T DEFAULT;             
 
@@ -1467,7 +1493,7 @@ struct SGT_2D {
         this->m = m;
         this->DEFAULT = DEFAULT;
         this->N = max(n, m); 
-        root.resize(N * 2, vt<T>(N * 2)); // do 4 * N for recursive segtreee
+        root.resize(N * 2, vector<T>(N * 2)); // do 4 * N for recursive segtreee
     }
 
     void update_at(int x, int y, T value) {
@@ -1868,12 +1894,12 @@ class SGT_BEAT {
 
     public:
     int n;
-    vt<Node> root;
+    vector<Node> root;
     SGT_BEAT(int n) {
         this->n = n;
         int k = 1;
         while(k < n) k <<= 1;
-        root.rsz(k << 1);
+        root.resize(k << 1);
     }
 
     void update_at(int id, T x) { update_at(entireTree, id, x); }
@@ -1921,13 +1947,13 @@ struct HISTORICAL_SGT_BEAT {
               mx(val), hmx(val), le(val), hle(val),
               tag1(0), htag1(0), tag2(0), htag2(0), tag3(0), htag3(0), tag4(0), htag4(0) {}
     };
-    vt<node> tree;
+    vector<node> tree;
     int n;
 
     HISTORICAL_SGT_BEAT(int _n = 0) : n(_n) {
         int k = 1;
         while(k < n) k <<= 1;
-        tree.rsz(k << 1);
+        tree.resize(k << 1);
     }
 
     node merge(const node &L, const node &R) {
@@ -3384,3 +3410,4 @@ struct parity_subarray_info {
         return ans_mn[p] <= x && x <= ans_mx[p];
     }
 };
+

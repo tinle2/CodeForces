@@ -615,7 +615,7 @@ template<class T, typename F = function<T(const T&, const T&)>>
 class FW {  
     public: 
     int n, N;
-    vt<T> root;    
+    vector<T> root;    
     T DEFAULT;
     F func;
     FW() {}
@@ -623,7 +623,7 @@ class FW {
         this->n = n;    
         this->DEFAULT = DEFAULT;
 		N = n == 0 ? -1 : log2(n);
-        root.rsz(n, DEFAULT);
+        root.resize(n, DEFAULT);
     }
     
     inline void update_at(int id, T val) {  
@@ -708,11 +708,11 @@ template<class T>
 class FW_2D {
     public:
     int n;
-    vt<vt<T>> root;
+    vector<vector<T>> root;
 	vvi coord;
     T DEFAULT;
     FW_2D(int n, T DEFAULT) : n(n), DEFAULT(DEFAULT) {
-        coord.rsz(n), root.rsz(n);
+        coord.resize(n), root.resize(n);
     }
  
     void go_up(int& id) {
@@ -757,7 +757,7 @@ class FW_2D {
     void build() {
         for(int i = 0; i < n; i++) {
             srtU(coord[i]);
-            root[i].rsz(coord[i].size(), DEFAULT);
+            root[i].resize(coord[i].size(), DEFAULT);
         }
     }
  
@@ -818,7 +818,7 @@ template<class T, typename F = function<T(const T&, const T&)>>
 class compress_FW {  
     public: 
     int n;
-    vt<T> root;    
+    vector<T> root;    
     T DEFAULT;
     F func;
     vll coord;
@@ -828,7 +828,7 @@ class compress_FW {
     void build() {
         srtU(coord);
         n = coord.size();
-        root.rsz(n + 1, DEFAULT);
+        root.resize(n + 1, DEFAULT);
     }
 
     void add_coord(ll x) {
@@ -889,11 +889,11 @@ class compress_FW {
 
 template<typename T>
 struct BIT2D {
-    vt<vt<T>> val;
+    vector<vector<T>> val;
     int n, m;
 
     BIT2D(int _n, int _m) : n(_n), m(_m) {
-        val.assign(n, vt<T>(m, 0));
+        val.assign(n, vector<T>(m, 0));
     }
 
     T query(int x, int y) {
@@ -919,16 +919,16 @@ struct BIT2D {
 template<typename T> // for queries and updating rectangle
 struct BIT2D {
     int n, m;
-    vt<vt<T>> B1, B2, B3, B4;
+    vector<vector<T>> B1, B2, B3, B4;
     
     BIT2D(int n, int m) : n(n), m(m) {
-        B1.assign(n + 1, vt<T>(m + 1, 0));
-        B2.assign(n + 1, vt<T>(m + 1, 0));
-        B3.assign(n + 1, vt<T>(m + 1, 0));
-        B4.assign(n + 1, vt<T>(m + 1, 0));
+        B1.assign(n + 1, vector<T>(m + 1, 0));
+        B2.assign(n + 1, vector<T>(m + 1, 0));
+        B3.assign(n + 1, vector<T>(m + 1, 0));
+        B4.assign(n + 1, vector<T>(m + 1, 0));
     }
     
-    void add(vt<vt<T>> &B, int x, int y, T v) {
+    void add(vector<vector<T>> &B, int x, int y, T v) {
         for (int i = x; i <= n; i += i & -i)
             for (int j = y; j <= m; j += j & -j)
                 B[i][j] += v;
@@ -956,7 +956,7 @@ struct BIT2D {
         add(B4, x2 + 1, y2 + 1, v * x2 * y2);
     }
     
-    T query(vt<vt<T>> &B, int x, int y) {
+    T query(vector<vector<T>> &B, int x, int y) {
         T sum = 0;
         for (int i = x; i > 0; i -= i & -i)
             for (int j = y; j > 0; j -= j & -j)
@@ -1692,7 +1692,7 @@ struct Mo_Update {
         orig = arr;
         for(auto &u : ups) orig.pb(u.newv);
         srtU(orig);
-        A.rsz(n);
+        A.resize(n);
         auto get_id = [&](ll x) -> int {
             return int(lb(all(orig), x) - begin(orig));
         };
@@ -1764,7 +1764,7 @@ struct Mo4D {
         int l1, r1, l2, r2, id;
     };
     int n, B;
-    vt<Query> qs;
+    vector<Query> qs;
     vi a, pos;
     vvi cc;
     vi mx, c;
@@ -1815,9 +1815,9 @@ struct Mo4D {
         pos = a;
         srtU(pos);
         const int N = a.size();
-        mx.rsz(N / B + 1);
-        cc.rsz(N / B + 1, vi(N));
-        c.rsz(N);
+        mx.resize(N / B + 1);
+        cc.resize(N / B + 1, vi(N));
+        c.resize(N);
         auto get_id = [&](int x) -> int {
             return int(lb(all(pos), x) - begin(pos));
         };
@@ -1847,13 +1847,13 @@ template<typename T, typename F = function<T(const T&, const T&)>>
 class SparseTable {
 public:
     int n, m;
-    vt<vt<T>> st;
+    vector<vector<T>> st;
     vi log_table;
     F func;
     
     SparseTable() {}
 
-    SparseTable(const vt<T>& a, F func) : n(a.size()), func(func) {
+    SparseTable(const vector<T>& a, F func) : n(a.size()), func(func) {
         m = floor(log2(n)) + 1;
         st.resize(m);
         for (int j = 0; j < m; j++) st[j].resize(n - (1 << j) + 1);
@@ -1876,25 +1876,25 @@ template<typename T, typename F = function<T(const T&, const T&)>>
 class SparseTable2D {
 public:
     int n, m, LOGN, LOGM;
-    vt<vt<vt<vt<T>>>> st;
+    vector<vector<vector<vector<T>>>> st;
     vi logn, logm;
     F f;
     T DEFAULT;
-    SparseTable2D(const vt<vt<T>> &a, T DEFAULT, F func) : f(func), DEFAULT(DEFAULT) {
+    SparseTable2D(const vector<vector<T>> &a, T DEFAULT, F func) : f(func), DEFAULT(DEFAULT) {
         n = a.size();
         m = a[0].size();
         LOGN = floor(log2(n)) + 1;
         LOGM = floor(log2(m)) + 1;
-        logn.rsz(n + 1, 0);
-        logm.rsz(m + 1, 0);
+        logn.resize(n + 1, 0);
+        logm.resize(m + 1, 0);
         for (int i = 2; i <= n; i++) logn[i] = logn[i / 2] + 1;
         for (int j = 2; j <= m; j++) logm[j] = logm[j / 2] + 1;
-        st.assign(LOGN, vt<vt<vt<T>>>(LOGM));
+        st.assign(LOGN, vector<vector<vector<T>>>(LOGM));
         for (int k = 0; k < LOGN; k++) {
             int rows = n - (1 << k) + 1;
             for (int l = 0; l < LOGM; l++) {
                 int cols = m - (1 << l) + 1;
-                st[k][l].rsz(rows, vt<T>(cols, DEFAULT));
+                st[k][l].resize(rows, vector<T>(cols, DEFAULT));
             }
         }
         for (int i = 0; i < n; i++)
@@ -1930,14 +1930,14 @@ public:
 
 template <typename T, typename F = function<bool(const T&, const T&)>> // only handle max, min
 struct linear_rmq {
-    vt<T> values;
+    vector<T> values;
     F compare;
     vi head;
-    vt<array<unsigned,2>> masks;
+    vector<array<unsigned,2>> masks;
 
     linear_rmq() {}
 
-    linear_rmq(const vt<T>& arr, F cmp = F{})
+    linear_rmq(const vector<T>& arr, F cmp = F{})
       : values(arr), compare(cmp),
         head(arr.size()+1),
         masks(arr.size())
@@ -1984,11 +1984,11 @@ struct linear_rmq {
 template<typename T>
 class TWO_DIMENSIONAL_RANGE_QUERY {   
     public: 
-    vt<vt<T>> prefix;
+    vector<vector<T>> prefix;
     int n, m;
     TWO_DIMENSIONAL_RANGE_QUERY(const vvi& grid) {  
         n = grid.size(), m = grid[0].size();
-        prefix.assign(n + 1, vt<T>(m + 1));  
+        prefix.assign(n + 1, vector<T>(m + 1));  
         for(int i = 1; i <= n; i++) {  
             T sm = 0;
             for(int j = 1; j <= m; j++) {  
@@ -2080,10 +2080,10 @@ struct interval_solver {
     int n;
     interval_solver(const vpii& a) : a(a), n(a.size()) {
         // all inclusive(include itself), -1 if needed
-        contain.rsz(n); // how many segments does the ith contained
-        is_contained.rsz(n); // how many segment does the ith be in
-        intersect.rsz(n); // how many segment does the ith intersect with
-        graph.rsz(n + 1);
+        contain.resize(n); // how many segments does the ith contained
+        is_contained.resize(n); // how many segment does the ith be in
+        intersect.resize(n); // how many segment does the ith intersect with
+        graph.resize(n + 1);
         solve_contain();
         solve_is_contained();
         solve_intersect();
@@ -2354,7 +2354,7 @@ struct LCT {
                 c[0] = c[1] = 0;
             }
     };
-    vt<Node> T;
+    vector<Node> T;
     LCT() {}
     LCT(int N) : T(N + 1) {}
     LCT(int N, const vll& A)
@@ -2769,7 +2769,7 @@ class BITSET {
 public:
     using ubig = unsigned long long;
     int sz;
-    vt<ubig> blocks;
+    vector<ubig> blocks;
     BITSET(int n) : sz(n) {
         int len = (n + 8 * (int)sizeof(ubig) - 1) / (8 * (int)sizeof(ubig));
         blocks.assign(len, 0ULL);
@@ -3184,7 +3184,7 @@ vector<T> sum_knapsack(int n, const vi& a) {
     for(int x : a) {
         if(x > 0 && x <= n) cnt[x]++;
     }
-    vt<T> dp(n + 1, T(0)), ndp(n + 1, T(0));
+    vector<T> dp(n + 1, T(0)), ndp(n + 1, T(0));
     dp[0] = T(1);
     for(int v = 1; v <= n; ++v) {
         int c = cnt[v];
@@ -3304,12 +3304,12 @@ private:
 template<typename T>
 struct Mat {
     int R, C;
-    vt<vt<T>> a;
+    vector<vector<T>> a;
     T DEFAULT; 
 
-    Mat(const vt<vt<T>>& m, T _DEFAULT = 0) : R((int)m.size()), C(m.empty() ? 0 : (int)m[0].size()), a(m), DEFAULT(_DEFAULT) {}
+    Mat(const vector<vector<T>>& m, T _DEFAULT = 0) : R((int)m.size()), C(m.empty() ? 0 : (int)m[0].size()), a(m), DEFAULT(_DEFAULT) {}
 
-    Mat(int _R, int _C, T _DEFAULT = 0) : R(_R), C(_C), DEFAULT(_DEFAULT), a(R, vt<T>(C, _DEFAULT)) {}
+    Mat(int _R, int _C, T _DEFAULT = 0) : R(_R), C(_C), DEFAULT(_DEFAULT), a(R, vector<T>(C, _DEFAULT)) {}
 
     static Mat identity(int n, T _DEFAULT) {
         Mat I(n, n, _DEFAULT);
@@ -3434,7 +3434,7 @@ template<typename T>
 struct range_unique { // determine if a[l, r] contain all unique value
     vi safe;
     int n;
-    range_unique(const vt<T>& a) : n(a.size()), safe(a.size()) {
+    range_unique(const vector<T>& a) : n(a.size()), safe(a.size()) {
         map<int, int> last;
         for(int i = 0, l = -1; i < n; i++) {
             if(last.count(a[i])) l = max(l, last[a[i]] + 1);
@@ -3457,8 +3457,8 @@ struct bracket {
 
     bracket(const string& s) {
         n = s.size();
-        prefix.rsz(n + 1);
-        right_most.rsz(n, -1);
+        prefix.resize(n + 1);
+        right_most.resize(n, -1);
         for(int i = 0; i < n; i++) {
             prefix[i + 1] = prefix[i] + (s[i] == '(' ? 1 : -1);
         }
@@ -3496,7 +3496,7 @@ struct bracket {
         // https://open.kattis.com/problems/piecesofparentheses
         struct Piece { int diff, mn, len; };
         int n = A.size();
-        vt<Piece> pieces;
+        vector<Piece> pieces;
         int sumPos = 0;
         for(auto& s : A) {
             int bal = 0, m = 0;
@@ -3666,15 +3666,15 @@ struct square_root_decomp_max {
     vi a;
     vi mx;
     vi cnt;
-    vt<map<int, int>> freq;
+    vector<map<int, int>> freq;
     int n;
 
     square_root_decomp_max(int n) : n(n) {
         B = sqrt(n);
         int num_blocks = (n + B - 1) / B;
-        mx.rsz(num_blocks);
+        mx.resize(num_blocks);
         cnt = vi(n);
-        freq = vt<map<int, int>>(num_blocks);
+        freq = vector<map<int, int>>(num_blocks);
     }
     
     int start_id(int i) {
@@ -3797,12 +3797,12 @@ struct static_range_mode_query {
         V = arr;
         srtU(V);
         U = V.size();
-        freq.rsz(U);
-        seen.rsz(U);
+        freq.resize(U);
+        seen.resize(U);
         map<int, int> comp;
         for (int i = 0; i < U; i++) comp[V[i]] = i;
 
-        A.rsz(n);
+        A.resize(n);
         for (int i = 0; i < n; i++) A[i] = comp[arr[i]];
 
         occur.assign(n, 0);
@@ -4054,7 +4054,7 @@ private:
             F.pb(F[prev]);
             return F.size() - 1;
         }
-        vt<Node> F;
+        vector<Node> F;
         vi t;
         int n;
         T DEFAULT;
@@ -4107,7 +4107,7 @@ private:
         }
     };
     map<int, int> mp;
-    vt<set<info>> each;
+    vector<set<info>> each;
     set<info> global;
     int n, m;
     vi pre;
@@ -4143,7 +4143,7 @@ private:
 public:
     int N;
     range_set_distinct(vi& a, int q) : n(a.size()), pre(a.size()), m(q + a.size() + 5), seg(n, 0) {
-        each.rsz(m);
+        each.resize(m);
         N = 0;
         for(int i = 1; i < n; i++) {
             if(!mp.count(a[i])) {
@@ -4303,12 +4303,12 @@ struct ODT {
 
 template<typename T>
 struct arithmetic_prefix { // 0 index
-    vt<T> a;
+    vector<T> a;
     vll PREFIX, prefix;
     int n;
-    arithmetic_prefix(const vt<T>& a) : a(a), n(a.size()) {
-        prefix.rsz(n + 1);
-        PREFIX.rsz(n + 1);
+    arithmetic_prefix(const vector<T>& a) : a(a), n(a.size()) {
+        prefix.resize(n + 1);
+        PREFIX.resize(n + 1);
         for(int i = 1; i <= n; i++) {
             prefix[i] = prefix[i - 1] + a[i - 1];
             PREFIX[i] = PREFIX[i - 1] + ((ll)a[i - 1] * i);
@@ -4413,7 +4413,7 @@ struct Alien_trick {
             prefix[i] = prefix[i - 1] + a[i - 1];
         }
         auto f = [&](ll cost) -> state {
-            vt<state> dp(n + 1);
+            vector<state> dp(n + 1);
             dp[0] = state(0, 0);
             for(int i = 1; i <= n; i++) {
                 dp[i] = cmp(dp[i], dp[i - 1]);
@@ -4717,10 +4717,10 @@ struct static_range_palindrome {
         d2.assign(n, 0);
         build_manachers(s);
 
-        a.rsz(n);
-        b.rsz(n);
-        c.rsz(n);
-        d.rsz(n);
+        a.resize(n);
+        b.resize(n);
+        c.resize(n);
+        d.resize(n);
         for (int i = 0; i < n; i++) {
             a[i] = d1[i] - (i + 1);
             b[i] = d1[i] + (i + 1);
@@ -4830,8 +4830,8 @@ struct StaticRangeInversion {
     vvi presuf;
     vvll R;
 
-    StaticRangeInversion(const vt<T> &sequence) : N(sequence.size()), bs(ceil(sqrt(std::max(N, 1)))), nb_bc((N + bs - 1) / bs) {
-        vt<T> dict = sequence;
+    StaticRangeInversion(const vector<T> &sequence) : N(sequence.size()), bs(ceil(sqrt(std::max(N, 1)))), nb_bc((N + bs - 1) / bs) {
+        vector<T> dict = sequence;
         srtU(dict);
         const int D = dict.size();
         vals.reserve(N), vals_sorted.reserve(N);
@@ -4871,7 +4871,7 @@ struct StaticRangeInversion {
             }
         }
 
-        R.rsz(nb_bc, vll(nb_bc));
+        R.resize(nb_bc, vll(nb_bc));
         for(int i = nb_bc - 1; i >= 0; i--) {
             R[i][i] = sufG[i * bs];
             for(int j = i + 1; j < nb_bc; j++) {
@@ -4926,10 +4926,10 @@ struct static_range_interval_query {
     vi far, far_block, cnt, next;
     int B;
     static_range_interval_query(int _n) : B(sqrt(_n)), n(_n) { 
-        far.rsz(n, -inf);
-        cnt.rsz(n, -inf);
-        next.rsz(n, -inf);
-        far_block.rsz(n / B + 1, -inf);
+        far.resize(n, -inf);
+        cnt.resize(n, -inf);
+        next.resize(n, -inf);
+        far_block.resize(n / B + 1, -inf);
     }
 
     int start_id(int i) {
@@ -5057,9 +5057,9 @@ struct max_and_set { // insert x into s, query max(x & a) where a in s
 template<typename T>
 struct sweep_2d {
     int n, m;
-    vt<vt<T>> arr;
+    vector<vector<T>> arr;
     sweep_2d(int n, int m) : n(n), m(m) {
-        arr.assign(n + 2, vt<T>(m + 2));
+        arr.assign(n + 2, vector<T>(m + 2));
     }
     void update_rect(int r1, int c1, int r2, int c2, T delta) {
         if(r1 > r2 || c1 > c2) return;
@@ -5086,7 +5086,7 @@ struct leftist_tree { // 1 base index
     };
 
     vi t;
-    vt<Node> F;
+    vector<Node> F;
     int n, src, dest;
     leftist_tree(int _n, int _src, int _dest) : t(_n + 1), n(_n), src(_src), dest(_dest) { F.emplace_back(); }
 
@@ -5115,11 +5115,11 @@ struct leftist_tree { // 1 base index
     }
 
     using info = pair<T, int>;
-    vt<T> dp;
+    vector<T> dp;
     vpii par;
-    void preprocess(const vt<vt<tuple<int, int, T>>>& f, const vt<vt<tuple<int, int, T>>>& g) { // f is reverse graph, g is normal graph, [nei, id, T], 1 base index
-        dp.rsz(n + 1, INF);
-        par.rsz(n + 1);
+    void preprocess(const vector<vector<tuple<int, int, T>>>& f, const vector<vector<tuple<int, int, T>>>& g) { // f is reverse graph, g is normal graph, [nei, id, T], 1 base index
+        dp.resize(n + 1, INF);
+        par.resize(n + 1);
         min_heap<info> q;
         auto process = [&](int node, T cost, int id, int p) -> void {
             if(dp[node] > cost) {
@@ -5152,10 +5152,10 @@ struct leftist_tree { // 1 base index
         }
     }
 
-    vt<T> run_dijkstra(int k) {
+    vector<T> run_dijkstra(int k) {
         // https://www.luogu.com.cn/problem/P2483
         // https://judge.yosupo.jp/problem/k_shortest_walk
-        vt<T> ans;
+        vector<T> ans;
         if(dp[src] >= INF) return ans;
         ans.pb(dp[src]);
         min_heap<info> q;
@@ -5175,7 +5175,7 @@ struct leftist_tree { // 1 base index
 template<typename T>
 struct sweepline_update {
     int n;
-    vt<T> a, diff, slope;
+    vector<T> a, diff, slope;
  
     sweepline_update(int n_) : n(n_) {
         a.assign(n, 0);
@@ -5222,7 +5222,7 @@ struct sweepline_update {
         }
     }
  
-    vt<T> get() {
+    vector<T> get() {
         build();
         return a;
     }
@@ -5720,3 +5720,4 @@ struct FastSet {
         return s;
     }
 };
+

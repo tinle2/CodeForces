@@ -1,3 +1,8 @@
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+template<class T> using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
 struct custom {
     static const uint64_t C = 0x9e3779b97f4a7c15; const uint32_t RANDOM = std::chrono::steady_clock::now().time_since_epoch().count();
     size_t operator()(uint64_t x) const { return __builtin_bswap64((x ^ RANDOM) * C); }
@@ -7,7 +12,23 @@ template <class K> using uset = std::unordered_set<K, custom>; template<class K,
 
 #define M_PI 3.14159265358979323846
 const static string pi = "3141592653589793238462643383279";
-ll gcd(ll a, ll b) { while (b != 0) { ll temp = b; b = a % b; a = temp; } return a; }
+inline ll gcd(ll a, ll b) {
+    int neg = 0;
+    if(a < 0) {
+        neg ^= 1;
+        a = -a;
+    }
+    if(b < 0) {
+        neg ^= 1;
+        b = -b;
+    }
+    while(b) {
+        a %= b;
+        swap(a, b);
+    }
+    return a * (neg ? -1 : 1);
+}
+
 ll lcm(ll a, ll b) { return (a / gcd(a, b)) * b; }
 ll floor(ll a, ll b) { if(b < 0) a = -a, b = -b; if (a >= 0) return a / b; return a / b - (a % b ? 1 : 0); }
 ll ceil(ll a, ll b) { if (b < 0) a = -a, b = -b; if (a >= 0) return (a + b - 1) / b; return a / b; }

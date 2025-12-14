@@ -304,9 +304,9 @@ struct Rect { ll x1, y1, x2, y2; };
 
 struct SheetManager {
     // https://codeforces.com/contest/1216/problem/C
-    vt<Rect> placed;
+    vector<Rect> placed;
     bool insert(const Rect &r) {
-        vt<Rect> clip;
+        vector<Rect> clip;
         for (auto &q : placed) {
             Rect c{max(r.x1, q.x1), max(r.y1, q.y1), min(r.x2, q.x2), min(r.y2, q.y2)};
             if(c.x1 < c.x2 && c.y1 < c.y2) clip.push_back(c);
@@ -326,8 +326,8 @@ struct SheetManager {
         srtU(ys);
         int Y = ys.size();
         struct Node { int cnt, len; };
-        vt<Node> st(4 * Y);
-        vt<tuple<int, int, int, int>> events;
+        vector<Node> st(4 * Y);
+        vector<tuple<int, int, int, int>> events;
         events.reserve(clip.size() * 2);
         for (auto &c : clip) {
             int y1 = lb(all(ys), c.y1) - ys.begin();
@@ -427,12 +427,12 @@ struct CHT : multiset<Line> { // cht max, for min just inverse the sign
 class CHT_segtree { // max cht
 public: 
     int n, base;
-    vt<CHT> tree;
+    vector<CHT> tree;
 
     CHT_segtree(int n) : n(n) {
         base = 1;
         while(base < n) base <<= 1;
-        tree.rsz(base << 1);
+        tree.resize(base << 1);
     }
     
     void update_at(int id, pll val) {  
@@ -491,8 +491,8 @@ struct Undo_CHT { // ll version
         ll pos, old_sz;
     };
 
-    vt<Line> A;
-    vt<UndoEntry> undo;
+    vector<Line> A;
+    vector<UndoEntry> undo;
     ll sz = 0;
 
     Undo_CHT(int max_n) {
@@ -562,12 +562,12 @@ struct Undo_CHT { // ld version
         int old_sz;
     };
 
-    vt<Line> A;
-    vt<UndoEntry> undo;
+    vector<Line> A;
+    vector<UndoEntry> undo;
     int sz = 0;
 
     Undo_CHT(int maxn) {
-        A.rsz(maxn);
+        A.resize(maxn);
         undo.reserve(maxn);
     }
 
@@ -703,7 +703,7 @@ struct LiChaoSegtree {
     };
     int n, base;
     ll xlo, xhi;
-    vt<LiChaoMax> seg;
+    vector<LiChaoMax> seg;
 
     LiChaoSegtree(int n, ll xlo, ll xhi) : n(n), xlo(xlo), xhi(xhi) {
         base = 1;
@@ -845,3 +845,4 @@ struct Hull {
         hull = move(newHull);
     }
 };
+

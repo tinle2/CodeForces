@@ -242,7 +242,7 @@ T totient_chain(const vpii& factors) {
         maxp = max(maxp, p);
     }
 
-    vt<T> cnt(maxp + 1, T(0));
+    vector<T> cnt(maxp + 1, T(0));
     for(auto& [p, e] : factors) {
         cnt[p] += e;
     }
@@ -309,7 +309,7 @@ struct NCkMod {
         ll x, y; ll g = egcd(a, m, x, y);
         if(g != 1) return -1; return (x % m + m) % m;
     }
-    using vec = vt<pair<ll, int>>;
+    using vec = vector<pair<ll, int>>;
     static vec factorize(int m) {
         vec f;
         for (int d = 2; d * d <= m; d++) if(m % d == 0){ int cnt = 0; while(m % d == 0){ cnt++; m /= d; } f.pb({d, cnt}); }
@@ -481,9 +481,9 @@ template<class T>
 class Combinatoric {    
     public: 
     int N;  
-    vt<T> fact, inv;   
+    vector<T> fact, inv;   
     Combinatoric(int _N) : N(_N) {   
-        fact.rsz(N + 1), inv.rsz(N + 1);
+        fact.resize(N + 1), inv.resize(N + 1);
         init();
     }
         
@@ -608,7 +608,7 @@ struct SumKBinomial {
     //      ans += nck(i * k, x)
     // }
     int N, K;
-    vt<T> A;
+    vector<T> A;
     SumKBinomial(int N_, int K_) : N(N_), K(K_), A(K_ * N_ + 1) {
         T invK = T(K).inv();
         A[0] = T(N);
@@ -633,13 +633,13 @@ template<typename T>
 T sum_of_powers(long long n, int k) { // find (1 ^ k + 2 ^ k + ... + n ^ k) sum
     // https://codeforces.com/contest/622/problem/F
     int M = k + 1;
-    vt<T> y(M + 1);
+    vector<T> y(M + 1);
     y[0] = T(0);
     for(int i = 1; i <= M; i++) {
         y[i] = y[i - 1] + T(i).pow(k);
     }
     if(n <= M) return y[n];
-    vt<T> pref(M + 1), suf(M + 1);
+    vector<T> pref(M + 1), suf(M + 1);
     pref[0] = T(1);
     for(int i = 1; i <= M; i++) {
         pref[i] = pref[i - 1] * T(n - (i - 1));
@@ -826,7 +826,7 @@ ll get_mask(ll a, ll k) { // get bit_mask representation in base k
 
 // Does the inverse of `submask_sums`; returns the input that produces the given output.
 template<typename T_out, typename T_in>
-void mobius_transform(int n, vt<T_in> &values) { // remember to set dp[mask] = -dp[mask] if(pct(mask) % 2 == 0) later
+void mobius_transform(int n, vector<T_in> &values) { // remember to set dp[mask] = -dp[mask] if(pct(mask) % 2 == 0) later
     assert(int(values.size()) == 1 << n);
  
     for (int i = 0; i < n; i++) {
@@ -969,15 +969,15 @@ https://oj.uz/problem/view/IZhO17_subsequence
 template<typename T>
 struct sos_dp {
     ll B, N;
-    vt<T> subset, superset, f, a;
-    sos_dp(const vt<T>& a) : a(a) {
+    vector<T> subset, superset, f, a;
+    sos_dp(const vector<T>& a) : a(a) {
         B = 0;
         ll m = MAX(a);
         while((1LL << B) <= m) B++;
         N = 1LL << B;
-        f.rsz(N);
+        f.resize(N);
     }
-    sos_dp(const vt<T>& a, ll B) : a(a), B(B), N(1LL << B), f(1LL << B) {}
+    sos_dp(const vector<T>& a, ll B) : a(a), B(B), N(1LL << B), f(1LL << B) {}
 
     ll low;
     sos_dp(int _B, int low) : low(low), B(_B), N(1LL << _B) { } // meet in the middle, https://www.codechef.com/problems/MONSTER?tab=statement
@@ -1019,7 +1019,7 @@ struct sos_dp {
 	template<typename F>
     vector<F> subset_or_equal_to() { // how many OR subset equal to i from 0 to (1 << B) - 1
         // https://www.hackerrank.com/contests/w16/challenges/vim-war/problem
-        vt<F> dp(1 << B);
+        vector<F> dp(1 << B);
         for(int i = 0; i < 1 << B; i++) {
             dp[i] = a[i];
         }
@@ -1045,7 +1045,7 @@ struct sos_dp {
 
     vll A;
     void update_subset(ll mask, ll delta = 1) { // update all submask of hi bits of mask
-        if(A.empty()) A.rsz(N);
+        if(A.empty()) A.resize(N);
         ll lo = ((1LL << low) - 1) & mask;
         mask = (mask >> low) << low;
         for(ll sub = mask; ; sub = (sub - 1) & mask) {
@@ -1071,7 +1071,7 @@ struct sos_dp {
     }
 
     void update_superset(ll mask, ll delta = 1) {
-        if(A.empty()) A.rsz(N);
+        if(A.empty()) A.resize(N);
         ll lo = ((1LL << low) - 1) & mask;
         const ll LOW = (((~mask & (N - 1)) >> low) << low);
         for(ll sub = LOW; ; sub = (sub - 1) & LOW) {
@@ -1243,7 +1243,7 @@ ll nck(ll n, ll k, ll MOD) {
     auto binom_pp = [&](ll N, ll K, int p, int q) -> ll {
         if(K < 0 || K > N) return 0LL;
         int pw = 1; for (int i = 0; i < q; ++i) pw *= p;
-        vt<ll> fct(pw); fct[0] = 1 % pw;
+        vector<ll> fct(pw); fct[0] = 1 % pw;
         for (int i = 1; i < pw; ++i) fct[i] = (i % p == 0 ? fct[i - 1] : (fct[i - 1] * (ll)i) % pw);
 
         auto facto = [&](auto& self, ll x) -> pll {
@@ -1269,7 +1269,7 @@ ll nck(ll n, ll k, ll MOD) {
         return res;
     };
 
-    vt<pair<ll,ll>> residues;
+    vector<pair<ll,ll>> residues;
     for (auto [p, q] : factorize(MOD)) { // prime factorize with rho
         int pw = 1; for (int i = 0; i < q; ++i) pw *= p;
         ll ri = binom_pp(n, k, p, q);

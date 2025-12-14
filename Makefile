@@ -10,76 +10,61 @@ BIN_DEBUG   := $(BUILD_DIR)/app
 BIN_RELEASE := $(BUILD_DIR)/app.release
 GENBIN      := $(BUILD_DIR)/generator
 
-CXX ?= ccache clang++
+CXX := g++
 
 LDOPT := $(shell command -v mold >/dev/null 2>&1 && echo -fuse-ld=mold || (command -v ld.lld >/dev/null 2>&1 && echo -fuse-ld=lld))
+LDFLAGS := $(LDOPT)
 
-# Debug vs Release flags (no sanitizers, no debug-STL, no warnings)
 CXXDEBUG := -std=gnu++23 -O0 -g -DLOCAL -pipe
 CXXREL   := -std=gnu++23 -O2 -DNDEBUG -pipe -march=native
-LDFLAGS  := $(LDOPT)
 
-# PCH (on by default)
+# ===== Global PCH (assume it's already built) =====
 PCH ?= 1
-PCHDBG_H := $(BUILD_DIR)/pch.debug.hpp
-PCHDBG_G := $(PCHDBG_H).gch
-PCHREL_H := $(BUILD_DIR)/pch.rel.hpp
-PCHREL_G := $(PCHREL_H).gch
+PCH_H := $(HOME)/.cache/cpp_pch/pch.hpp
 
 ifeq ($(PCH),1)
-  USE_PCH_DBG := -include $(PCHDBG_H)
-  USE_PCH_REL := -include $(PCHREL_H)
-  DEPS_PCH_DBG := $(PCHDBG_G)
-  DEPS_PCH_REL := $(PCHREL_G)
+  USE_PCH := -include $(PCH_H)
 else
-  USE_PCH_DBG :=
-  USE_PCH_REL :=
-  DEPS_PCH_DBG :=
-  DEPS_PCH_REL :=
+  USE_PCH :=
 endif
+# ================================================
 
-.PHONY: new run run-fast run-interactive make-release run-release clean
+.PHONY: new run run-fast run-interactive make-release run-release clean pch
 
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
-$(PCHDBG_H): | $(BUILD_DIR)
-	@printf '#include <bits/stdc++.h>\n' > '$@'
-$(PCHREL_H): | $(BUILD_DIR)
-	@printf '#include <bits/stdc++.h>\n' > '$@'
+# OPTIONAL: build PCH only when you explicitly run `make pch`
+pch:
+	@mkdir -p '$(HOME)/.cache/cpp_pch'
+	@printf '#pragma once\n#include <bits/stdc++.h>\n' > '$(HOME)/.cache/cpp_pch/pch.hpp'
+	@echo "[PCH] building ~/.cache/cpp_pch/pch.hpp.gch..."
+	@$(CXX) -std=gnu++23 -O2 -pipe -x c++-header '$(HOME)/.cache/cpp_pch/pch.hpp' -o '$(HOME)/.cache/cpp_pch/pch.hpp.gch'
 
-$(PCHDBG_G): $(PCHDBG_H) | $(BUILD_DIR)
-	@$(CXX) $(CXXDEBUG) -x c++-header '$<' -o '$@'
-$(PCHREL_G): $(PCHREL_H) | $(BUILD_DIR)
-	@$(CXX) $(CXXREL) -x c++-header '$<' -o '$@'
+# Build binaries in ONE step (compile+link), like `just`
+$(BIN_DEBUG): $(SUBMIT) | $(BUILD_DIR)
+	@$(CXX) $(CXXDEBUG) $(USE_PCH) '$(SUBMIT)' -o '$@' $(LDFLAGS)
 
-$(BIN_DEBUG): $(SUBMIT) $(DEPS_PCH_DBG) | $(BUILD_DIR)
-	@$(CXX) $(CXXDEBUG) $(USE_PCH_DBG) -o '$@' '$(SUBMIT)' $(LDFLAGS)
+$(BIN_RELEASE): $(SUBMIT) | $(BUILD_DIR)
+	@$(CXX) $(CXXREL) $(USE_PCH) '$(SUBMIT)' -o '$@' $(LDFLAGS)
 
-$(BIN_RELEASE): $(SUBMIT) $(DEPS_PCH_REL) | $(BUILD_DIR)
-	@$(CXX) $(CXXREL) $(USE_PCH_REL) -o '$@' '$(SUBMIT)' $(LDFLAGS)
+$(GENBIN): $(GENERATOR) | $(BUILD_DIR)
+	@$(CXX) $(CXXREL) $(USE_PCH) '$(GENERATOR)' -o '$@' $(LDFLAGS)
 
-$(GENBIN): $(GENERATOR) $(DEPS_PCH_REL) | $(BUILD_DIR)
-	@$(CXX) $(CXXREL) $(USE_PCH_REL) -o '$@' '$(GENERATOR)' $(LDFLAGS)
-
-# Debug run
 run: $(BIN_DEBUG)
-	@ulimit -s 2097152; '$(BIN_DEBUG)' < '$(INPUT)'
+	@'$(BIN_DEBUG)' < '$(INPUT)'
 
 run-interactive: $(BIN_DEBUG)
 	@'$(BIN_DEBUG)'
 
-# Fast run (no debug)
 run-fast: $(BIN_RELEASE)
-	@ulimit -s 2097152; '$(BIN_RELEASE)' < '$(INPUT)'
+	@'$(BIN_RELEASE)' < '$(INPUT)'
 
-# Build release only
 make-release: $(BIN_RELEASE)
 	@:
 
-# Compatibility: release run
 run-release: $(BIN_RELEASE)
-	@ulimit -s 2097152; '$(BIN_RELEASE)' < '$(INPUT)'
+	@'$(BIN_RELEASE)' < '$(INPUT)'
 
 new: | $(BUILD_DIR)
 	@cp -f '$(TEMPLATE)' '$(SUBMIT)' && > '$(INPUT)'

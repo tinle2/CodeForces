@@ -8,30 +8,30 @@ public:
     vll depth_by_weight;
     vvi weight;
     int timer = 0;
-    vt<unsigned> in_label, ascendant;
+    vector<unsigned> in_label, ascendant;
     vi par_head;
     unsigned cur_lab = 1;
-    const vt<vt<T>> adj;
+    const vector<vector<T>> adj;
 
     GRAPH() {}
 
-    GRAPH(const vt<vt<T>>& graph, int root = 0) : adj(graph) {
+    GRAPH(const vector<vector<T>>& graph, int root = 0) : adj(graph) {
         n = graph.size();
         m = log2(n) + 1;
-//        depth_by_weight.rsz(n);
-//        weight.rsz(n, vi(m));
-        dp.rsz(n, vi(m, -1));
-        depth.rsz(n);
-        parent.rsz(n, -1);
-        subtree.rsz(n, 1);
-        tin.rsz(n);
-        tout.rsz(n);
-        ord.rsz(n);
+//        depth_by_weight.resize(n);
+//        weight.resize(n, vi(m));
+        dp.resize(n, vi(m, -1));
+        depth.resize(n);
+        parent.resize(n, -1);
+        subtree.resize(n, 1);
+        tin.resize(n);
+        tout.resize(n);
+        ord.resize(n);
         dfs(root);
         init();
-        in_label.rsz(n);
-        ascendant.rsz(n);
-        par_head.rsz(n + 1);
+        in_label.resize(n);
+        ascendant.resize(n);
+        par_head.resize(n + 1);
         sv_dfs1(root);
         ascendant[root] = in_label[root];
         sv_dfs2(root);
@@ -291,18 +291,18 @@ class HLD {
     vi id, tp, sz, parent, chain_id, rid;
     int chain_cnt;
     int ct;
-    vt<vt<TT>> graph;
+    vector<vector<TT>> graph;
     int n;
     GRAPH<TT> g;
     T DEFAULT;
     F func;
     HLD() {}
 
-    HLD(vt<vt<TT>>& _graph, vi a, F func, int root = 0, T DEFAULT = 0) : graph(_graph), seg(_graph.size(), DEFAULT, func), g(graph, root), n(graph.size()), func(func), DEFAULT(DEFAULT) {
+    HLD(vector<vector<TT>>& _graph, vi a, F func, int root = 0, T DEFAULT = 0) : graph(_graph), seg(_graph.size(), DEFAULT, func), g(graph, root), n(graph.size()), func(func), DEFAULT(DEFAULT) {
         this->parent = move(g.parent);
         this->sz = move(g.subtree);
         chain_cnt = 0, ct = 0;
-        id.rsz(n), tp.rsz(n), chain_id.rsz(n), rid.rsz(n);
+        id.resize(n), tp.resize(n), chain_id.resize(n), rid.resize(n);
         dfs(root, -1, root);
         for(int i = 0; i < n; i++) seg.update_at(id[i], a[i]);
     }
@@ -454,7 +454,7 @@ struct path_queries { // update point, query path from rt to v mostly
     FW<int> fw;
     vi curr, tin, tout;
 
-    path_queries(const vt<vt<T>>& graph, const vi& a, int rt = 0)
+    path_queries(const vector<vector<T>>& graph, const vi& a, int rt = 0)
       : n(graph.size()), g(graph, rt),
         fw(n * 2 + 1, 0),
         curr(a), tin(graph.size()), tout(graph.size())
@@ -500,7 +500,7 @@ public:
     DSU(int n) {    
         this->n = n;    
         comp = n;
-        root.rsz(n, -1), rank.rsz(n, 1), col.rsz(n, 0);
+        root.resize(n, -1), rank.resize(n, 1), col.resize(n, 0);
         is_bipartite = true;
     }
     
@@ -540,8 +540,8 @@ public:
         return rank[find(x)];
     }
     
-	vvi get_group() {
-        vvi ans(n);
+	vector<vector<int>> get_group() {
+        vector<vector<int>> ans(n);
         for(int i = 0; i < n; i++) {
             ans[find(i)].pb(i);
         }
@@ -557,7 +557,7 @@ struct Persistent_DSU {
 	vpii bip;
 	Persistent_DSU(int n) {
 		this->n = n; version = 0;
-		parent.rsz(n); rank.rsz(n); col.rsz(n);
+		parent.resize(n); rank.resize(n); col.resize(n);
 		for (int i = 0; i < n; i++) {
 			parent[i].pb({version, i});
 			rank[i].pb({version, 1});
@@ -792,7 +792,7 @@ class SCC {
     SCC(int n) {
         this->n = n;
         curr_comp = 0;
-        graph.rsz(n), revGraph.rsz(n), vis.rsz(n), comp.rsz(n, -1), comp_cnt.rsz(n);
+        graph.resize(n), revGraph.resize(n), vis.resize(n), comp.resize(n, -1), comp_cnt.resize(n);
 		// don't forget to build after adding edges
     }
  
@@ -884,16 +884,16 @@ class SCC {
 template<typename T>
 struct CD { // centroid_decomposition
     int n, root;
-    vt<vt<T>> graph, G;
+    vector<vector<T>> graph, G;
     vi size, parent, vis;
     ll ans;
     GRAPH<T> g;
     vi best;
-    CD(const vt<vt<T>>& graph) : graph(graph), n(graph.size()), g(graph), best(graph.size(), inf), G(graph.size()) {
+    CD(const vector<vector<T>>& graph) : graph(graph), n(graph.size()), g(graph), best(graph.size(), inf), G(graph.size()) {
         ans = 0;
-        size.rsz(n);
-        parent.rsz(n, -1);
-        vis.rsz(n);
+        size.resize(n);
+        parent.resize(n, -1);
+        vis.resize(n);
         root = init();
     }
  
@@ -970,14 +970,14 @@ struct CD { // centroid_decomposition
     vvi big;
     vvll big_prefix;
     vvvi small;
-    vt<vvll> small_prefix;
+    vector<vvll> small_prefix;
     bool by_weight = false;
     inline void build() {
-        id.rsz(n, -1);
+        id.resize(n, -1);
         big = vvi(n);
         big_prefix = vvll(n);
         small = vvvi(n);
-        small_prefix = vt<vvll>(n);
+        small_prefix = vector<vvll>(n);
         {
             auto dfs = [&](auto& dfs, int node, int par) -> void {
                 int c = 0;
@@ -987,8 +987,8 @@ struct CD { // centroid_decomposition
                     id[nei] = c++;
                     dfs(dfs, nei, node);
                 }
-                small[node].rsz(c);
-                small_prefix[node].rsz(c);
+                small[node].resize(c);
+                small_prefix[node].resize(c);
             }; dfs(dfs, root, -1);
             vvi().swap(G);
         }
@@ -1008,12 +1008,12 @@ struct CD { // centroid_decomposition
         for(int i = 0; i < n; i++) {
             big[i].pb(-inf);
             srt(big[i]);
-            big_prefix[i].rsz(big[i].size());
+            big_prefix[i].resize(big[i].size());
             const int N = small[i].size();
             for(int j = 0; j < N; j++) {
                 small[i][j].pb(-inf);
                 srt(small[i][j]);
-                small_prefix[i][j].rsz(small[i][j].size());
+                small_prefix[i][j].resize(small[i][j].size());
             }
         }
         for(int i = 0; i < n; i++) {
@@ -1080,7 +1080,7 @@ struct CD { // centroid_decomposition
 //    inline void build() {
 //        GRAPH<T> gg(G, root);
 //        vvi a;
-//        vt<vt<T>>().swap(G);
+//        vector<vector<T>>().swap(G);
 //        swap(tin, gg.tin);
 //        swap(tout, gg.tout);
 //        swap(depth, gg.depth);
@@ -1098,7 +1098,7 @@ struct CD { // centroid_decomposition
 //        for(int i = 0; i < n; i++) {
 //            srtU(coord[i]);
 //            const int N = coord[i].size();
-//            val[i].rsz(N);
+//            val[i].resize(N);
 //            pos[i] = vpii(depth[i] + 1);
 //        }
 //        for(int i = 0; i < n; i++) {
@@ -1384,10 +1384,10 @@ struct Tarjan {
     stack<int> s;
     int timer, comp;
     Tarjan(const vvpii& graph, int edges_size) : m(edges_size), graph(graph), timer(0), n(graph.size()), comp(0) {
-        tin.rsz(n);
-        low.rsz(n);
-        bridges.rsz(edges_size);
-        belong.rsz(n);
+        tin.resize(n);
+        low.resize(n);
+        bridges.resize(edges_size);
+        belong.resize(n);
         for(int i = 0; i < n; i++) {
             if(!tin[i]) {
                 dfs(i);
@@ -1510,7 +1510,7 @@ struct block_cut_tree {
     vi is_simple_cycle;
     stack<int> s;
     block_cut_tree(int n, const vpii& edges) : edges(edges), n(n), m(edges.size()) {
-        tin.rsz(n), low.rsz(n), id.rsz(n, -1), is_art.rsz(n), graph.rsz(n);
+        tin.resize(n), low.resize(n), id.resize(n, -1), is_art.resize(n), graph.resize(n);
         for(int i = 0; i < m; i++) {
             auto& [u, v] = edges[i];
             graph[u].pb({v, i});
@@ -1576,7 +1576,7 @@ struct block_cut_tree {
     void build() {
 		// bipartile of comp -> articulation point -> comp -> articulation point
         int B = comps.size(); 
-        is_simple_cycle.rsz(m);
+        is_simple_cycle.resize(m);
         comp_vertices = vvi(B);
         int c = 0;
         for(int i = 0; i < n; i++) {
@@ -1608,7 +1608,7 @@ struct block_cut_tree {
                 id[i] = nc++;
             }
         }
-        tree.rsz(nc);
+        tree.resize(nc);
         for(int i = 0; i < (int)comp_vertices.size(); i++) {
             int bn = c++;
             for(auto& u : comp_vertices[i]) {
@@ -1694,7 +1694,7 @@ struct two_sat {
         either(cur, l[1] ^ 1);
     }
 
-    vt<bool> satisfy() {
+    vector<bool> satisfy() {
         int V = 2 * N;
         vvi adj(V), radj(V);
         for (auto& e : edges) {
@@ -1725,7 +1725,7 @@ struct two_sat {
                 cid++;
             }
         }
-        vt<bool> res(N);
+        vector<bool> res(N);
         for(int i = 0; i < N; ++i) {
             if(comp[2 * i] == comp[2 * i + 1]) return {};
             res[i] = comp[2 * i] > comp[2 * i + 1];
@@ -1858,11 +1858,11 @@ struct max_clique { // maximum independent set is max clique on the complement g
 template<typename T>
 struct rerooting {
     int n;
-    vt<vt<T>> graph;
+    vector<vector<T>> graph;
     vll ans, dp;
-    rerooting(const vt<vt<T>>& _graph, int root = 0) : graph(_graph), n(_graph.size()) {
-        dp.rsz(n);
-        ans.rsz(n);
+    rerooting(const vector<vector<T>>& _graph, int root = 0) : graph(_graph), n(_graph.size()) {
+        dp.resize(n);
+        ans.resize(n);
 		dfs1(root, -1);
         dfs2(root, -1);
     }
@@ -1890,12 +1890,12 @@ template<typename T = int>
 struct virtual_tree {
     GRAPH<T> g;
     using info = pair<int, ll>;
-    vt<vt<info>> graph; // [node, dist]
+    vector<vector<info>> graph; // [node, dist]
     bool dist_by_weight;
     vi subtree, importance;
     int total;
     ll ans = 0;
-    virtual_tree(const vt<vt<T>>& _graph, bool _dist_by_weight = false) : g(_graph), graph(_graph.size()), dist_by_weight(_dist_by_weight), subtree(_graph.size()), importance(_graph.size()) {}
+    virtual_tree(const vector<vector<T>>& _graph, bool _dist_by_weight = false) : g(_graph), graph(_graph.size()), dist_by_weight(_dist_by_weight), subtree(_graph.size()), importance(_graph.size()) {}
 
     int build(vi& vertices) {
         int n = vertices.size();
@@ -1912,7 +1912,7 @@ struct virtual_tree {
         a.erase(unique(all(a)), end(a));
         total = vertices.size();
         for(auto& u : a) {
-            vt<info>().swap(graph[u]);
+            vector<info>().swap(graph[u]);
             subtree[u] = 0; 
             importance[u] = false;
         }
@@ -1950,7 +1950,7 @@ struct EulerianPath {
     bool directed;
     vvpii graph;
     vi deg, indeg, outdeg;
-    vt<bool> used;
+    vector<bool> used;
     vi ans_edges, ans_nodes;
 
     EulerianPath(int _nodes, bool _directed = false)
@@ -2002,7 +2002,7 @@ struct EulerianPath {
 
     void dfs(int u) {
 		if(used.empty()) {
-			used.rsz(edges);
+			used.resize(edges);
 		}
         while(!graph[u].empty()) {
             auto [v, id] = graph[u].back();
@@ -2019,7 +2019,7 @@ struct EulerianPath {
     pair<vi, vi> get_path() {
         int start = find_start();
         if(start < 0) return {};
-        used.rsz(edges);
+        used.resize(edges);
         dfs(start);
         if((int)ans_edges.size() != edges) return {};
         rev(ans_nodes);
@@ -2065,9 +2065,9 @@ struct dinic {
     };
  
     int V = -1;
-    vt<vt<edge>> adj;
+    vector<vector<edge>> adj;
     vi dist, edge_index;
-    vt<vt<flow_t>> _cap_snapshot;
+    vector<vector<flow_t>> _cap_snapshot;
     flow_t        _flow_snapshot;
     bool flow_called;
  
@@ -2198,8 +2198,8 @@ struct dinic {
         return cut;
     }
 	
-	vt<vt<flow_t>> assign_flow(int n) {
-        vt<vt<flow_t>> assign(n, vt<flow_t>(n));   
+	vector<vector<flow_t>> assign_flow(int n) {
+        vector<vector<flow_t>> assign(n, vector<flow_t>(n));   
         for(int i = 0; i < n; i++) {
             for(auto& it : adj[i]) {
                 int j = it.node - n;
@@ -2284,7 +2284,7 @@ struct dinic {
 
     void snapshot() {
         vvi().swap(_cap_snapshot);
-        _cap_snapshot.rsz(V);
+        _cap_snapshot.resize(V);
         for (int u = 0; u < V; ++u) {
             for (auto &e : adj[u]) {
                 _cap_snapshot[u].pb(e.capacity);
@@ -2324,7 +2324,7 @@ struct MCMF {
     }
     public:
 
-    vt<vt<Edge>> graph;
+    vector<vector<Edge>> graph;
     MCMF(int V) : V(V), graph(V) {}
 
     void add_directional_edge(int u, int v, T capacity, T cost) {
@@ -2339,7 +2339,7 @@ struct MCMF {
     pair<T,T> min_cost_flow(int s, int t, T max_f = numeric_limits<T>::max()) {
         T flow = 0, flow_cost = 0;
         vi prev_v(V), prev_e(V);
-        vt<T> dist(V);
+        vector<T> dist(V);
         vb inq(V);
         const T INF_T = numeric_limits<T>::max();
         while (flow < max_f) {
@@ -2551,7 +2551,7 @@ struct HopcroftKarp {
     int n, m; 
     vvi adj;
     vi pairU, pairV;
-    vt<T> dist;
+    vector<T> dist;
 
     HopcroftKarp(int n, int m) : n(n), m(m) {
         adj.resize(n);
@@ -2636,13 +2636,13 @@ template<class T, T oo>
 struct Hungarian {
     int n, m;
     vi maty, frm, used;
-    vt<vt<T>> cst;
-    vt<T> fx, fy, dst;
+    vector<vector<T>> cst;
+    vector<T> fx, fy, dst;
 
     Hungarian(int n, int m) {
         this->n = n;
         this->m = m;
-        cst.resize(n + 1, vt<T>(m + 1, oo));
+        cst.resize(n + 1, vector<T>(m + 1, oo));
         fx.resize(n + 1);
         fy.resize(m + 1);
         dst.resize(m + 1);
@@ -2714,3 +2714,4 @@ struct Hungarian {
         return res;
     }
 };
+

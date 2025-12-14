@@ -9,7 +9,7 @@ class Binary_Trie {
         }
     };
     public:
-    static vt<Node> T; // careful with static if no merging needed
+    static vector<Node> T; // careful with static if no merging needed
     int root;
     int BIT;
     Binary_Trie(int _BIT = 30) : BIT(_BIT){ root = new_node(); }
@@ -265,10 +265,10 @@ class Binary_Trie {
     }
 
     void clear() {
-        vt<Node>().swap(T);
+        vector<Node>().swap(T);
         root = new_node();
     }
-}; vt<Binary_Trie::Node> Binary_Trie::T;
+}; vector<Binary_Trie::Node> Binary_Trie::T;
 
 struct PERSISTENT_TRIE {
     struct Node {
@@ -281,12 +281,12 @@ struct PERSISTENT_TRIE {
         T.pb(Node());
         return T.size() - 1;
     }
-    vt<Node> T;
+    vector<Node> T;
     vi root;
     int BIT;
     PERSISTENT_TRIE(int n, int _BIT) : BIT(_BIT) {
         new_node();
-        root.rsz(n);
+        root.resize(n);
     }
 
     int add(int rt, int prev, int num, int v = 1, int lev = 0) {
@@ -417,7 +417,7 @@ struct Trie {
             mset(c, 0);
         }
     };
-    vt<Node> T;
+    vector<Node> T;
     char off;
     Trie(char _off) : off(_off) {
         T.pb(Node());
@@ -454,7 +454,7 @@ struct aho_corasick {
             sfx = dict = cnt = is_end = 0;
         }
     };
-    vt<Node> T;
+    vector<Node> T;
  
     char off;
     aho_corasick(char _off) : off(_off) {
@@ -657,8 +657,8 @@ struct KMP {
     KMP() {}
     KMP(const string& t, char c) : t(t), c(c) {
         n = t.size();
-        dp.rsz(n, vi(26));
-        prefix.rsz(n);
+        dp.resize(n, vi(26));
+        prefix.resize(n);
         build();
         // property of finding period by kmp : if(len % (len - kmp[i]) == 0) period = len - kmp[i], otherwise period = len
         // to check if substring s[l, r] is k period, we just check the if s[l + k, r] == s[l, r - k]
@@ -706,9 +706,9 @@ struct KMP {
         return cnt;
     }
 
-    ll count_substring(const vt<pair<char, int>>& a, const vt<pair<char, int>>& b) { // https://codeforces.com/contest/631/problem/D
+    ll count_substring(const vector<pair<char, int>>& a, const vector<pair<char, int>>& b) { // https://codeforces.com/contest/631/problem/D
         // compress form of [char, occurences] of s and t, count occurences of t in s
-        vt<pair<char, ll>> s, t;
+        vector<pair<char, ll>> s, t;
         for (auto &p : a) {
             if (!s.empty() && s.back().ff == p.ff) s.back().ss += p.ss;
             else s.emplace_back(p.ff, p.ss);
@@ -734,7 +734,7 @@ struct KMP {
             return ans;
         }
         int k = m - 2;
-        vt<pair<char, ll>> mid;
+        vector<pair<char, ll>> mid;
         for (int i = 1; i <= k; i++) mid.pb(t[i]); // the len can be >= between first and last so we must match exactly the middle and deal with them later
         vi lps(k);
         for (int i = 1, len = 0; i < k; i++) {
@@ -928,8 +928,8 @@ void initGlobalHashParams() {
     shuffle(all(candidateBases), default_random_engine(seed));
     shuffle(all(candidateMods), default_random_engine(seed + 1));
 
-    base.rsz(HASH_COUNT);
-    mod.rsz(HASH_COUNT);
+    base.resize(HASH_COUNT);
+    mod.resize(HASH_COUNT);
     for(int i = 0; i < HASH_COUNT; i++) {
         mod[i] = candidateMods[i];
         base[i] = candidateBases[i];
@@ -971,8 +971,8 @@ struct RabinKarp {
     RabinKarp(const T &s) : s(s) {
         n = s.size();
         for (int i = 0; i < HASH_COUNT; i++) {
-            prefix[i].rsz(n + 1, 0);
-            suffix[i].rsz(n + 1, 0);
+            prefix[i].resize(n + 1, 0);
+            suffix[i].resize(n + 1, 0);
         }
         for (int j = 1; j <= n; j++) {
             int x = s[j - 1] - 'a' + 1;
@@ -1272,14 +1272,14 @@ class suffix_array {
     public:
     template <typename T, typename F = function<bool(const T&, const T&)>> // only handle max, min
         struct linear_rmq {
-            vt<T> values;
+            vector<T> values;
             F compare;
             vi head;
-            vt<array<unsigned,2>> masks;
+            vector<array<unsigned,2>> masks;
 
             linear_rmq() {}
 
-            linear_rmq(const vt<T>& arr, F cmp = F{})
+            linear_rmq(const vector<T>& arr, F cmp = F{})
                 : values(arr), compare(cmp),
                 head(arr.size()+1),
                 masks(arr.size())
@@ -1333,7 +1333,7 @@ class suffix_array {
         this->s = s;
         distinct_substring = 0;
         n = s.size();
-        sa.rsz(n), pos.rsz(n), lcp.rsz(n);
+        sa.resize(n), pos.resize(n), lcp.resize(n);
         init();
         build_lcp();
         rmq = linear_rmq<int>(lcp, [](const int& a, const int& b) {return a < b;});
@@ -1894,14 +1894,14 @@ class suffix_array { // O(n) suffix_array
     public:
     template <typename T, typename F = function<bool(const T&, const T&)>> // only handle max, min
         struct linear_rmq {
-            vt<T> values;
+            vector<T> values;
             F compare;
             vi head;
-            vt<array<unsigned,2>> masks;
+            vector<array<unsigned,2>> masks;
 
             linear_rmq() {}
 
-            linear_rmq(const vt<T>& arr, F cmp = F{})
+            linear_rmq(const vector<T>& arr, F cmp = F{})
                 : values(arr), compare(cmp),
                 head(arr.size()+1),
                 masks(arr.size())
@@ -1958,7 +1958,7 @@ class suffix_array { // O(n) suffix_array
         sa = atcoder::suffix_array(s);
         lcp = atcoder::lcp_array(s, sa);
         while(lcp.size() < n) lcp.pb(0);
-        pos.rsz(n);
+        pos.resize(n);
         for(int i = 0; i < n; i++) {
             pos[sa[i]] = i;
         }
@@ -1969,8 +1969,8 @@ class suffix_array { // O(n) suffix_array
     
     vvi starts, ends;
     void build_occurence_vector() {
-        starts.rsz(n + 1); 
-        ends.rsz(n + 1);
+        starts.resize(n + 1); 
+        ends.resize(n + 1);
         vpii st;
         st.pb({0, 0});
         for(int i = 0; i < n; i++) {
@@ -2235,7 +2235,7 @@ struct SAM {
         State() : len(0), link(-1), cnt(0) { next.fill(-1); }
     };
 
-    vt<State> st;
+    vector<State> st;
     int last;
     ll distinct_substring;
     vll dp_distinct;
@@ -2399,7 +2399,7 @@ struct substring_count {
     // https://codeforces.com/contest/914/problem/F
     int n, W;
     string s;
-    vt<ull> B[26];
+    vector<ull> B[26];
 
     substring_count(const string& str) : n(str.size()), s(str) {
         W = (n + 63) / 64;
@@ -2425,11 +2425,11 @@ struct substring_count {
     ll query(int l, int r, const string& y) const {
         int m = y.size();
         if(m > r - l + 1) return 0;
-        vt<ull> M = B[y[0] - 'a'];
+        vector<ull> M = B[y[0] - 'a'];
         for(int j = 1; j < m; j++) {
             int c = y[j] - 'a';
             int sw = j >> 6, sb = j & 63;
-            vt<ull> T(W, 0);
+            vector<ull> T(W, 0);
             for(int w = 0; w + sw < W; w++) {
                 ull low  = B[c][w + sw] >> sb;
                 ull high = sb ? B[c][w + sw + 1] << (64 - sb) : 0;
@@ -2474,12 +2474,12 @@ struct eer_tree {
         ll total_palindrome;
     };
 
-    vt<Node> F;
+    vector<Node> F;
     string s;
     int last;
     int max_len, max_end;
     ll total_palindrome;
-    vt<SnapInfo> snaps;
+    vector<SnapInfo> snaps;
 
     vi dp, g;
 
@@ -2506,7 +2506,7 @@ struct eer_tree {
         dp.pb(0);
         g.clear();  
         g.reserve(n * 2 + 5);
-        g.rsz(3, 0);
+        g.resize(3, 0);
     }
 
     bool insert(char ch) {
@@ -2759,6 +2759,7 @@ struct eertree {
     }
 
 };
+
 
 
 

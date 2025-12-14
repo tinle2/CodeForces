@@ -20,9 +20,9 @@ struct Undo_DSU {
     Undo_DSU(int n) : n(n) {
         comp = n;
         is_bipartite = true;
-        par.rsz(n);
-        rank.rsz(n, 1);
-        col.rsz(n, 0);
+        par.resize(n);
+        rank.resize(n, 1);
+        col.resize(n, 0);
         iota(par.begin(), par.end(), 0);
     }
     
@@ -94,13 +94,13 @@ template<typename T>
 struct DynaCon { 
     int SZ;  
     Undo_DSU A;
-    vt<vt<T>> seg;
+    vector<vector<T>> seg;
     vll ans;
     DynaCon(int n, int dsuSize) : A(dsuSize) {
 		SZ = 1;
         while(SZ < n) SZ <<= 1;
         seg.resize(SZ << 1);
-        ans.rsz(SZ);
+        ans.resize(SZ);
     }
 
     void update_range(int l, int r, T p) {  
@@ -925,4 +925,5 @@ public:
     bool isConnected(int v, int w) const { return forests[0].isConnected(v, w); }
 
 };
+
 

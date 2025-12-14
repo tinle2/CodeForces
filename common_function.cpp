@@ -91,7 +91,7 @@ T lcm_pairwise_sum(const vi& a) {
     // SUM(a[i])^2 = SUM(a[i]^2) + 2 * SUMPAIRWISE(a[i] * a[j])
     // SUMPAIRWISE(a[i] * a[j]) = SUM(a[i])^2 - SUM(a[i]^2)
     const int M = MAX(a);
-    vt<T> s(M + 1), s2(M + 1), f(M + 1);
+    vector<T> s(M + 1), s2(M + 1), f(M + 1);
     for(auto& x : a) {
         s[x] += x;
         s2[x] += T(x) * x;
@@ -305,7 +305,7 @@ int count_assignment(int n, const vpii& edges) { // count the number of way to a
             DSU(int n) {    
                 this->n = n;    
                 comp = n;
-                root.rsz(n, -1), rank.rsz(n, 1), col.rsz(n, 0), self_loop.rsz(n), edges.rsz(n);
+                root.resize(n, -1), rank.resize(n, 1), col.resize(n, 0), self_loop.resize(n), edges.resize(n);
                 is_bipartite = true;
             }
 
@@ -741,7 +741,7 @@ vi directional_cycle_vector(const vvi& out_graph) {
 }
 
 template<typename T = int>
-vi diameter_vector(const vt<vt<T>>& graph) { // return a vector where a[i] is the max diameter from the ith vertex
+vi diameter_vector(const vector<vector<T>>& graph) { // return a vector where a[i] is the max diameter from the ith vertex
     int n = graph.size();
     auto bfs = [&](int src) -> vi {
         vi dp(n, -1);
@@ -824,13 +824,13 @@ vi derangement(const vi& a) { // return an array where nothing is in the origina
 }
 
 template<typename T>
-vt<T> compute_lis(const vi& a, int K, const var(3)& queries) { // careful with k = 0 loop, it's k = 1 loop right now
+vector<T> compute_lis(const vi& a, int K, const var(3)& queries) { // careful with k = 0 loop, it's k = 1 loop right now
     // https://usaco.org/index.php?page=viewproblem2&cpid=997
     int n = a.size();
     int q = queries.size();
-    vt<T> ans(q);
-    vt<vt<T>> pre(n), suff(n);
-    vt<T> preT(n), suffT(n);
+    vector<T> ans(q);
+    vector<vector<T>> pre(n), suff(n);
+    vector<T> preT(n), suffT(n);
     auto dfs = [&](auto& dfs, int l, int r, const var(3)& Q) -> void {
         if(Q.empty()) return;
         if(l == r) {
@@ -841,8 +841,8 @@ vt<T> compute_lis(const vi& a, int K, const var(3)& queries) { // careful with k
         }
         int m = (l + r) >> 1;
         {
-            vt<vt<T>> dp(K + 1, vt<T>(K + 1));
-            vt<T> C(K + 1);
+            vector<vector<T>> dp(K + 1, vector<T>(K + 1));
+            vector<T> C(K + 1);
             T S = 0;
             for(int i = m; i >= l; i--) {
                 int L = a[i];
@@ -862,8 +862,8 @@ vt<T> compute_lis(const vi& a, int K, const var(3)& queries) { // careful with k
             }
         }
         {
-            vt<vt<T>> dp(K + 1, vt<T>(K + 1));
-            vt<T> C(K + 1);
+            vector<vector<T>> dp(K + 1, vector<T>(K + 1));
+            vector<T> C(K + 1);
             T S = 0;
             for(int i = m + 1; i <= r; i++) {
                 int R = a[i];
@@ -1622,12 +1622,12 @@ pair<ll, vi> max_xor_via_swap(const vll& a, const vll& b) { // maximizing xor(a)
     ull all_bits = (1ULL << l) - 1;
     ull u = (~(a_xor ^ b_xor)) & all_bits;
 
-    vt<ull> v(n);
+    vector<ull> v(n);
     for (int i = 0; i < n; i++) v[i] = (a[i] ^ b[i]) & u;
 
-    vt<ull> base_val_by_bit(l, 0);
+    vector<ull> base_val_by_bit(l, 0);
     vi base_id_by_bit(l, -1);
-    vt<ull> base_val_by_id, base_pre_mask_by_id;
+    vector<ull> base_val_by_id, base_pre_mask_by_id;
     vi base_lead_bit_by_id, base_orig_index_by_id;
     int rank = 0;
 
@@ -1992,3 +1992,57 @@ vi lexicographically_smallest_derangement(const vi& a) {
     }
     return vi(p.begin() + 1, p.end());
 }
+
+vll all_subarray_mex_0_to_n(vi a) { // return an array for each k from 0 to n represents the subarray that have i as mex
+    // https://codeforces.com/gym/106195/problem/K
+    int n = a.size();
+    a.insert(begin(a), 0);
+    vvi pos(n + 1);
+    for(int i = 0; i <= n; i++) {
+        pos[i].pb(0);
+    }
+    set<pii> interval;
+    for(int i = 1; i <= n; i++) {
+        if(a[i] <= n) {
+            pos[a[i]].pb(i);
+        }
+    }
+    for(int i = 0; i <= n; i++) {
+        interval.insert({i, i + 1});
+    }
+    for(int i = 0; i <= n; i++) {
+        pos[i].pb(n + 1);
+    }
+    auto insert = [&](int l, int r) -> ll {
+        auto it = interval.lb({l + 1, -1});
+        auto [xl, yl] = *prev(it);
+        if (yl >= r) return 0;
+        ll now = 0;
+        int last = yl;
+        while(it != interval.end()) {
+            auto [x, y] = *it;
+            if(r >= y) {
+                now += 1LL * (x - l) * (y - last);
+                last = y;
+                it = next(it);
+                interval.erase(prev(it));
+            } else {
+                now += 1LL * (x - l) * (r - last);
+                break;
+            }
+        }
+
+        interval.insert({l, r});
+        return now;
+    };
+
+    vll ans(n + 1);
+    for(int mex = 0; mex <= n; mex++) {
+        const int N = pos[mex].size();
+        for(int i = 1; i < N; i++) {
+            ans[mex] += insert(pos[mex][i - 1], pos[mex][i]);
+        }
+    }
+    return ans;
+}
+
