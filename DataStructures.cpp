@@ -611,11 +611,11 @@ public:
     }
 };
 
-template<class T, typename F = function<T(const T&, const T&)>>
+template<class T, typename F = std::function<T(const T&, const T&)>>
 class FW {  
     public: 
     int n, N;
-    vector<T> root;    
+    std::vector<T> root;    
     T DEFAULT;
     F func;
     FW() {}
@@ -648,10 +648,6 @@ class FW {
         return get(right) - get(left - 1);
     }
 
-    inline T queries_at(int i) {
-        return queries_range(i, i);
-    }
-
     inline void update_range(int l, int r, T val) {
 		if(l > r) return;
         update_at(l, val), update_at(r + 1, -val);
@@ -661,11 +657,11 @@ class FW {
 		root.assign(n, DEFAULT);
 	}
 
-	ll select(ll k) {
-        ll pos = -1;
+	i64 select(i64 k) {
+        i64 pos = -1;
         T acc = DEFAULT;
-        for(ll bit = 1LL << N; bit > 0; bit >>= 1) {
-            ll np = pos + bit;
+        for(i64 bit = 1LL << N; bit > 0; bit >>= 1) {
+            i64 np = pos + bit;
             if(np < n) {
                 T cand = acc + root[np];
                 if(cand < k) {
@@ -1843,17 +1839,17 @@ struct Mo4D {
     }
 };
 
-template<typename T, typename F = function<T(const T&, const T&)>>
+template<typename T, typename F = std::function<T(const T&, const T&)>>
 class SparseTable {
 public:
     int n, m;
-    vector<vector<T>> st;
-    vi log_table;
+    std::vector<std::vector<T>> st;
+    std::vector<int> log_table;
     F func;
     
     SparseTable() {}
 
-    SparseTable(const vector<T>& a, F func) : n(a.size()), func(func) {
+    SparseTable(const std::vector<T>& a, F func) : n(a.size()), func(func) {
         m = floor(log2(n)) + 1;
         st.resize(m);
         for (int j = 0; j < m; j++) st[j].resize(n - (1 << j) + 1);
@@ -1871,6 +1867,7 @@ public:
         return func(st[j][L], st[j][R - (1 << j) + 1]);
     }
 };
+
 
 template<typename T, typename F = function<T(const T&, const T&)>>
 class SparseTable2D {
@@ -5061,14 +5058,15 @@ struct sweep_2d {
     sweep_2d(int n, int m) : n(n), m(m) {
         arr.assign(n + 2, vector<T>(m + 2));
     }
-    void update_rect(int r1, int c1, int r2, int c2, T delta) {
+    void update_rect(int r1, int c1, int r2, int c2, T delta) { // 1 base index
         if(r1 > r2 || c1 > c2) return;
+        // r1++, c1++, r2++, c2++;
         arr[r1][c1] += delta;
         arr[r1][c2 + 1] -= delta;
         arr[r2 + 1][c1] -= delta;
         arr[r2 + 1][c2 + 1] += delta;
     }
-    void finalize() {
+    void finalize() { // 1 base index
         for(int i = 1; i <= n; i++) {
             for(int j = 1; j <= m; j++) {
                 arr[i][j] += arr[i - 1][j] + arr[i][j - 1] - arr[i - 1][j - 1];
@@ -5721,3 +5719,49 @@ struct FastSet {
     }
 };
 
+template<typename T>
+struct rank_sorter { // sort base on pair as the key [rank[i], rank[i ^ k]]
+    // https://codeforces.com/contest/1654/problem/F
+    int M;
+    vector<int> order;
+    vector<int> rankv;
+    vector<int> new_rank;
+
+    explicit rank_sorter(int m)
+        : M(m), order(m), rankv(m), new_rank(m) {
+        iota(order.begin(), order.end(), 0);
+    }
+
+    explicit rank_sorter(const T& s)
+        : M(s.size()), order(M), rankv(M), new_rank(M) {
+        iota(order.begin(), order.end(), 0);
+        for(int i = 0; i < M; i++) {
+            rankv[i] = (int)(unsigned char)s[i];
+        }
+    }
+
+    template <class Op>
+    void step(int k, Op op) {
+        auto cmp = [&](int i, int j) {
+            if (rankv[i] != rankv[j]) return rankv[i] < rankv[j];
+            return rankv[op(i, k)] < rankv[op(j, k)];
+        };
+        sort(all(order), cmp);
+
+        new_rank[order[0]] = 0;
+        for (int t = 1; t < M; t++) {
+            int prev = order[t - 1];
+            int cur  = order[t];
+            new_rank[cur] = new_rank[prev] + (cmp(prev, cur) ? 1 : 0);
+        }
+        rankv.swap(new_rank);
+    }
+
+    int classes() const {
+        return rankv[order.back()] + 1;
+    }
+
+    int good() {
+        return classes() == M;
+    }
+};

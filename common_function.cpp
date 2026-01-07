@@ -2046,3 +2046,77 @@ vll all_subarray_mex_0_to_n(vi a) { // return an array for each k from 0 to n re
     return ans;
 }
 
+
+int two_increasing_subsequences(vi a) { // can a permutation of size 2 * n be split into 2 increasing subsequence of size n
+    // https://repovive.com/contests/4/problems/F
+    int n = a.size();
+    for(auto& x : a) {
+        x--;
+    }
+    const int inf = 1e9;
+    int mx1 = -inf, mx2 = -inf;
+    for(auto& x : a) {
+        if(x > mx1) {
+            mx2 = mx1;
+            mx1 = x;
+        } else {
+            mx2 = max(mx2, x);
+        }
+        if(mx2 > x) {
+            return 0;
+        }
+    }
+    vvi graph(n);
+    stack<int> s;
+    for(auto& x : a) {
+        int mx = x;
+        while(!s.empty() && x < s.top()) {
+            int v = s.top(); s.pop();
+            graph[x].pb(v);
+            graph[v].pb(x);
+            mx = max(mx, v);
+        }
+        s.push(mx);
+    }
+    vi vis(n);
+    int C[2] = {};
+    auto dfs = [&](auto& dfs, int i = 0, int c = 0) -> void {
+        if(vis[i]) return;
+        C[c]++;
+        vis[i] = 1;
+        for(auto& j : graph[i]) {
+            dfs(dfs, j, c ^ 1);
+        } 
+    };
+    int base = 0;
+    vi sz;
+    for(int i = 0; i < n; i++) {
+        if(!vis[i]) {
+            C[0] = C[1] = 0;
+            dfs(dfs, i);
+            base += min(C[0], C[1]);
+            sz.pb(abs(C[0] - C[1]));
+        }
+    }
+    int need = (n / 2) - base;
+    if(need < 0 || need > n / 2) {
+        return 0;
+    }
+    return possible_subsets_knapsack(need + 1, sz).test(need);
+}
+
+vi get_post_order(const vvi& graph, int rt = 0) {
+    vi orders;
+    stack<pii> s;
+    s.push({rt, -1});
+    while(!s.empty()) {
+        auto [node, par] = s.top(); s.pop();
+        orders.pb(node);
+        for(auto& nei : graph[node]) {
+            if(nei == par) continue;
+            s.push({nei, node});
+        }
+    }
+    rev(orders);
+    return orders;
+}

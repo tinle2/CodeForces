@@ -2,25 +2,25 @@ template<typename T = int>
 class GRAPH {
 public:
 	int n, m;
-    vvi dp;
-    vi parent, subtree;
-    vi tin, tout, low, ord, depth;
-    vll depth_by_weight;
-    vvi weight;
-    int timer = 0;
-    vector<unsigned> in_label, ascendant;
-    vi par_head;
+    std::vector<std::vector<int>> dp;
+    std::vector<int> parent, subtree;
+    std::vector<int> tin, tout, low, ord, depth;
+    std::vector<int> depth_by_weight;
+    std::vector<std::vector<int>> weight;
+    std::vector<unsigned> in_label, ascendant;
+    std::vector<int> par_head;
     unsigned cur_lab = 1;
-    const vector<vector<T>> adj;
+    int timer = 0;
+    const std::vector<std::vector<T>> adj;
 
     GRAPH() {}
 
-    GRAPH(const vector<vector<T>>& graph, int root = 0) : adj(graph) {
+    GRAPH(const std::vector<std::vector<T>>& graph, int root = 0) : adj(graph) {
         n = graph.size();
         m = log2(n) + 1;
 //        depth_by_weight.resize(n);
-//        weight.resize(n, vi(m));
-        dp.resize(n, vi(m, -1));
+//        weight.resize(n, std::vector<int>(m));
+        dp.resize(n, std::vector<int>(m, -1));
         depth.resize(n);
         parent.resize(n, -1);
         subtree.resize(n, 1);
@@ -93,8 +93,12 @@ public:
     }
 
     int lca(int a, int b) {
-        if(is_ancestor(a, b)) return a;
-        if(is_ancestor(b, a)) return b;
+        if(is_ancestor(a, b)) {
+            return a;
+        }
+        if(is_ancestor(b, a)) {
+            return b;
+        }
         auto [x, y] = std::minmax(in_label[a], in_label[b]);
         unsigned j = ascendant[a] & ascendant[b] & -std::__bit_floor((x - 1) ^ y);
         a = lift(a, j);
@@ -103,24 +107,28 @@ public:
     }
 
     int path_queries(int u, int v) { // lca in logn
-        if(depth[u] < depth[v]) swap(u, v);
+        if(depth[u] < depth[v]) {
+            std::swap(u, v);
+        }
         int res = 0;
         int diff = depth[u] - depth[v];
         for(int i = 0; i < m; i++) {
             if(diff & (1 << i)) { 
-                res = max(res, weight[u][i]);
+                res = std::max(res, weight[u][i]);
                 u = dp[u][i]; 
             }
         }
-        if(u == v) return res;
+        if(u == v) {
+            return u;
+        }
         for(int i = m - 1; i >= 0; --i) {
             if(dp[u][i] != dp[v][i]) {
-                res = max({res, weight[u][i], weight[v][i]});
+                res = std::max({res, weight[u][i], weight[v][i]});
                 u = dp[u][i];
                 v = dp[v][i];
             }
         }
-        return max({res, weight[u][0], weight[v][0]});
+        return std::max({res, weight[u][0], weight[v][0]});
     }
 
     int dist(int u, int v) {
@@ -128,13 +136,15 @@ public:
         return depth[u] + depth[v] - 2 * depth[a];
     }
 	
-	ll dist_by_weight(int u, int v) {
+	i64 dist_by_weight(int u, int v) {
         int a = lca(u, v);
         return depth_by_weight[u] + depth_by_weight[v] - 2 * depth_by_weight[a];
     }
 
-	int kth_ancestor(int u, ll k) {
-        if(u < 0 || k > depth[u]) return -1;
+	int kth_ancestor(int u, i64 k) {
+        if(u < 0 || k > depth[u]) {
+            return -1;
+        }
         for(int i = 0; i < m && u != -1; ++i) {
             if(k & (1LL << i)) {
                 u = (u >= 0 ? dp[u][i] : -1);
@@ -143,20 +153,26 @@ public:
         return u;
     }
 
-    int kth_ancestor_on_path(int u, int v, ll k) {
+    int kth_ancestor_on_path(int u, int v, i64 k) {
         int d = dist(u, v);
-        if(k >= d) return v;
+        if(k >= d) {
+            return v;
+        }
         int w  = lca(u, v);
         int du = depth[u] - depth[w];
-        if(k <= du) return kth_ancestor(u, k);
+        if(k <= du) {
+            return kth_ancestor(u, k);
+        }
         int rem = k - du;
         int dv  = depth[v] - depth[w];
         return kth_ancestor(v, dv - rem);
     }
 
-    int kth_downward(int v, ll k) {
-        if(k < 1 || k > depth[v] + 1) return -1;
-        ll steps_up = depth[v] - (k - 1);
+    int kth_downward(int v, i64 k) {
+        if(k < 1 || k > depth[v] + 1) {
+            return -1;
+        }
+        i64 steps_up = depth[v] - (k - 1);
         return kth_ancestor(v, steps_up);
     }
 
@@ -172,13 +188,14 @@ public:
     }
 	
 	int intersection(int a, int b, int c, int d) { // common edges between path[a, b] OR path[c, d]
-        vi arr = {a, b, c, d, lca(a, b), lca(a, c), lca(a, d), lca(b, c), lca(b, d), lca(c, d)};
-        srtU(arr);
-        vi s;
+        std::vector<int> arr = {a, b, c, d, lca(a, b), lca(a, c), lca(a, d), lca(b, c), lca(b, d), lca(c, d)};
+        sort(begin(arr), end(arr));
+        arr.erase(unique(begin(arr), end(arr)), end(arr));
+        std::vector<int> s;
         int res = 0;
         for(auto& x : arr) {
             if(dist(x, a) + dist(x, b) == dist(a, b) && dist(c, x) + dist(x, d) == dist(c, d)) {
-                s.pb(x);
+                s.push_back(x);
                 for(auto& y : s) {
                     res = max(res, dist(x, y)); // +1 if looking for maximum node
                 }
@@ -194,13 +211,17 @@ public:
     int rooted_lca(int a, int b, int c) { return lca(a, c) ^ lca(a, b) ^ lca(b, c); } 
 
     int next_on_path(int u, int v) { // closest_next_node from u to v
-        if(u == v) return -1;
-        if(is_ancestor(u, v)) return kth_ancestor(v, depth[v] - depth[u] - 1);
+        if(u == v) {
+            return -1;
+        }
+        if(is_ancestor(u, v)) {
+            return kth_ancestor(v, depth[v] - depth[u] - 1);
+        }
         return parent[u];
     }
 
     void reroot(int root) {
-        fill(all(parent), -1);
+        fill(begin(parent), end(parent), -1);
         timer = 0;
         dfs(root);
         init();
@@ -215,28 +236,52 @@ public:
         return n - subtree[c];
     }
 
-    int rooted_lca_potential_node(int a, int b, int c) { // # of nodes where rooted at will make lca(a, b) = c
-        if(rooted_lca(a, b, c) != c) return 0;
+    int rooted_lca_potential_node(int a, int b, int c) { // # of nodes where rooted at wii64 make lca(a, b) = c
+        if(rooted_lca(a, b, c) != c) {
+            return 0;
+        }
         int v1 = next_on_path(c, a);
         int v2 = next_on_path(c, b);
         return n - (v1 == -1 ? 0 : comp_size(c, v1)) - (v2 == -1 ? 0 : comp_size(c, v2));
     }
 	
-	vi get_path(int u, int v) { // get every node in path [u, v]
-        vi path1, path2;
+	std::vector<int> get_path(int u, int v) { // get every node in path [u, v]
+        std::vector<int> path1, path2;
         int c = lca(u, v);
         while(u != c) {
-            path1.pb(u);
+            path1.push_back(u);
             u = parent[u];
         }
         while(v != c) {
-            path2.pb(v);
+            path2.push_back(v);
             v = parent[v];
         }
-        rev(path2);
-        path1.pb(c);
-        path1.insert(end(path1), all(path2));
+        reverse(begin(path2), end(path2));
+        path1.push_back(c);
+        path1.insert(end(path1), begin(path2), end(path2));
         return path1;
+    }
+	
+	i64 pair_contain_path(int u, int v) { // number of pair have path[u, v] as its subpath
+        // https://atcoder.jp/contests/abc438/tasks/abc438_f
+        if(u == v) {
+            i64 res = 1;
+            i64 S = 1;
+            for(auto& x : adj[u]) {
+                res += subtree[x] * S;
+                S += subtree[x];
+            }
+            return res;
+        }
+        int l = lca(u, v);
+        if(u == l) {
+            int nxt = next_on_path(u, v);
+            return ((i64)n - subtree[nxt]) * subtree[v];
+        } else if(v == l) {
+            int nxt = next_on_path(v, u);
+            return ((i64)n - subtree[nxt]) * subtree[u];
+        }
+        return (i64)subtree[u] * subtree[v];
     }
 };
 
@@ -495,7 +540,7 @@ struct path_queries { // update point, query path from rt to v mostly
 class DSU { 
 public: 
     int n, comp;  
-    vi root, rank, col;  
+    std::vector<int> root, rank, col;  
     bool is_bipartite;  
     DSU(int n) {    
         this->n = n;    
@@ -521,8 +566,8 @@ public:
             return 0;
         }
         if(rank[u] < rank[v]) {
-            swap(u, v);
-            swap(a, b);
+            std::swap(u, v);
+            std::swap(a, b);
         }
 		comp--;
         root[v] = u;
@@ -540,12 +585,12 @@ public:
         return rank[find(x)];
     }
     
-	vector<vector<int>> get_group() {
-        vector<vector<int>> ans(n);
+	std::vector<std::vector<int>> get_group() {
+        std::vector<std::vector<int>> ans(n);
         for(int i = 0; i < n; i++) {
-            ans[find(i)].pb(i);
+            ans[find(i)].push_back(i);
         }
-        sort(all(ans), [](const vi& a, const vi& b) {return a.size() > b.size();});
+        sort(begin(ans), end(ans), [](const auto& a, const auto& b) {return a.size() > b.size();});
         while(!ans.empty() && ans.back().empty()) ans.pop_back();
         return ans;
     }

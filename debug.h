@@ -1,4 +1,3 @@
-// debug.h
 #pragma once
 #include <bits/stdc++.h>
 using namespace std;
@@ -6,24 +5,28 @@ using namespace std;
 /*
 Usage:
   - Compile with -DLOCAL to enable debug.
-  - Optional: -DDEBUG_AUTO_FLUSH to make cerr/cout unbuffered.
+  - Optional: -DDEBUG_AUTO_FLUSH to make cout unbuffered.
   - debug(x, y, expr(a, b), vec, map, ...)
 
-Fixes:
-  - Properly splits argument names at top-level commas only (handles commas inside (), <>, []).
-  - Stable output order by printing timers/memory to cerr (same stream as debug).
+Key fix vs your version:
+  - debug(...) prints to the SAME stream as normal output (cout), so ordering is stable.
 */
 
 #ifdef DEBUG_AUTO_FLUSH
 struct _AutoFlush {
     _AutoFlush() {
-        cerr.setf(std::ios::unitbuf);
-        cout.setf(std::ios::unitbuf);
+        cout.setf(std::ios::unitbuf); // auto-flush after each insertion
     }
 } _autoFlush;
 #endif
 
 #ifdef LOCAL
+
+// Choose output stream for debug.
+// Printing to cout ensures it won't interleave with cout answers.
+#ifndef DBG_STREAM
+#define DBG_STREAM cout
+#endif
 
 // ------------------ Pretty printers ------------------
 
@@ -100,7 +103,7 @@ inline ostream& operator<<(ostream& os, const C& cont) {
     return os;
 }
 
-// pretty map-like output is already covered by container printer, but this is nicer for std::map
+// nicer for std::map
 template<class K, class V>
 inline ostream& operator<<(ostream& os, const map<K,V>& m) {
     os << '{';
@@ -123,7 +126,6 @@ inline string _dbg_trim(string s) {
 }
 
 // find comma that separates macro arguments (top-level only)
-// handles commas inside (), <>, [] so expressions like lcm(a, b), pair<int,int>{1,2}, bitset<K>(x) work
 inline const char* _dbg_find_top_level_comma(const char* s) {
     int depth_par = 0, depth_ang = 0, depth_br = 0;
     for (; *s; ++s) {
@@ -144,31 +146,26 @@ inline const char* _dbg_find_top_level_comma(const char* s) {
 #define debug(...) debug_out(#__VA_ARGS__, __VA_ARGS__)
 
 inline void debug_out(const char*) {
-    cerr << '\n' << flush;
+    DBG_STREAM << '\n' << flush;
 }
 
 template<class T, class... R>
 inline void debug_out(const char* names, T&& v, R&&... r) {
     const char* comma = _dbg_find_top_level_comma(names);
     string name = comma ? string(names, comma) : string(names);
-    cerr << "[" << _dbg_trim(name) << " = " << v << "]";
+    DBG_STREAM << "[" << _dbg_trim(name) << " = " << v << "]";
     if constexpr (sizeof...(r)) {
-        cerr << ", ";
+        DBG_STREAM << ", ";
         debug_out(comma ? comma + 1 : names, std::forward<R>(r)...);
     } else {
-        cerr << '\n' << flush;
+        DBG_STREAM << '\n' << flush;
     }
 }
 
 // ------------------ timers & memory usage ------------------
 
-// Use in pairs:
-//   startClock
-//   ...
-//   endClock
-// NOTE: prints to cerr to preserve ordering with debug(...)
 #define startClock do { clock_t _dbg_tStart = clock();
-#define endClock   cerr << fixed << setprecision(10) \
+#define endClock   DBG_STREAM << fixed << setprecision(10) \
                     << "\nTime Taken: " \
                     << double(clock() - _dbg_tStart) / CLOCKS_PER_SEC \
                     << " seconds\n" << flush; } while(0)
@@ -179,7 +176,7 @@ inline void debug_out(const char* names, T&& v, R&&... r) {
   inline void printMemoryUsage() {
       rusage u{}; getrusage(RUSAGE_SELF, &u);
       // ru_maxrss is in KB on Linux
-      cerr << "Memory: " << (u.ru_maxrss / 1024.0) << " MB\n" << flush;
+      DBG_STREAM << "Memory: " << (u.ru_maxrss / 1024.0) << " MB\n" << flush;
   }
 #else
   inline void printMemoryUsage() {}

@@ -172,12 +172,12 @@ class SGT {
         }
 };
 
-template<class T, typename F = function<T(const T&, const T&)>>
+template<class T, typename F = std::function<T(const T&, const T&)>>
 class basic_segtree {
 public:
     int n;    
     int size;  
-    vector<T> root;
+    std::vector<T> root;
     F func;
     T DEFAULT;  
     
@@ -189,11 +189,11 @@ public:
         root.assign(size << 1, _DEFAULT);
     }
 	
-	void build(const vector<T>& a) {
+	void build(const std::vector<T>& a) {
         for(int i = 0; i < n; i++) 
             root[size + i] = a[i];
         for(int i = size - 1; i > 0; i--) 
-            root[i] = root[i << 1] + root[i << 1 | 1];
+			root[i] = func(root[i << 1], root[i << 1 | 1]);
     }
     
     void update_at(int idx, T val) {
@@ -203,7 +203,7 @@ public:
     }
     
 	T queries_range(int l, int r) {
-        l = max(0, l), r = min(r, n - 1);
+        l = std::max(0, l), r = std::min(r, n - 1);
         T res_left = DEFAULT, res_right = DEFAULT;
         l += size, r += size;
         bool has_left = false, has_right = false;
@@ -231,7 +231,7 @@ public:
         return root[idx + size];
     }
 
-	void update_range(int l, int r, ll v) {}
+	void update_range(int l, int r, i64 v) {}
 
     T get() {
         return root[1];
@@ -240,7 +240,7 @@ public:
     template<typename Pred>
     int max_right(int start, Pred P) const {
         if(start < 0) start = 0;
-        if(start >= n) return n;
+        if(start >= n) return n - 1;
         T sm = DEFAULT;
         int idx = start + size;
         do {
@@ -868,25 +868,39 @@ struct wavelet_psgt {
     private:
     struct Node {
         int cnt;
-        ll sm;
-        Node(int cnt = 0, ll sm = 0) : cnt(cnt), sm(sm) {}
-        friend Node operator+(const Node& x, const Node& y) { return {x.cnt + y.cnt, x.sm + y.sm}; };
-        friend Node operator-(const Node& x, const Node& y) { return {x.cnt - y.cnt, x.sm - y.sm}; };
+        i64 sm;
+        Node(int cnt = 0, i64 sm = 0) : cnt(cnt), sm(sm) {}
+        friend Node operator+(const Node& x, const Node& y) { 
+            return {x.cnt + y.cnt, x.sm + y.sm}; 
+        };
+        friend Node operator-(const Node& x, const Node& y) { 
+            return {x.cnt - y.cnt, x.sm - y.sm}; 
+        };
     };
     int n;
-    vector<Node> root;
-    vi t;
-    vpii child;
-    vi a;
-    int new_node() { root.pb(Node(0, 0)); child.pb({0, 0}); return root.size() - 1; }
-    int get_id(ll x) { return int(lb(all(a), x) - begin(a)); }
+    std::vector<Node> root;
+    std::vector<int> t;
+    std::vector<std::pair<int, int>> child;
+    std::vector<int> a;
+
+    int new_node() { 
+        root.push_back(Node(0, 0)); 
+        child.push_back({0, 0}); 
+        return root.size() - 1; 
+    }
+
+    int get_id(i64 x) { 
+        return int(lower_bound(begin(a), end(a), x) - begin(a)); 
+    }
+
     public:
     wavelet_psgt() {}
 
-    wavelet_psgt(const vi& arr) : a(arr) {
+    wavelet_psgt(const std::vector<int>& arr) : a(arr) {
         t.resize(arr.size());
         new_node(); 
-        srtU(a);
+        sort(begin(a), end(a));
+        a.erase(unique(begin(a), end(a)), end(a));
         n = a.size();
         for(int i = 0, prev = 0; i < (int)arr.size(); i++) {
             t[i] = new_node();
@@ -903,36 +917,53 @@ struct wavelet_psgt {
             return;
         }
         int middle = (left + right) >> 1;
-        if(id <= middle) child[curr].ff = new_node(), update(child[curr].ff, child[prev].ff, id, delta, left, middle); 
-        else child[curr].ss = new_node(), update(child[curr].ss, child[prev].ss, id, delta, middle + 1, right);
-        root[curr] = root[child[curr].ff] + root[child[curr].ss];
+        if(id <= middle) {
+            child[curr].first = new_node(), update(child[curr].first, child[prev].first, id, delta, left, middle);
+        } else {
+            child[curr].second = new_node(), update(child[curr].second, child[prev].second, id, delta, middle + 1, right);
+        }
+        root[curr] = root[child[curr].first] + root[child[curr].second];
     }
 
     int kth(int l, int r, int k) {
         return kth((l == 0 ? 0 : t[l - 1]), t[r], k, 0, n - 1);
     }
 
-    ll sum_kth(int l, int r, int k) {
+    i64 sum_kth(int l, int r, int k) {
         return sum_kth((l == 0 ? 0 : t[l - 1]), t[r], k, 0, n - 1);
     }
 
     int kth(int l, int r, int k, int left, int right) {
-        if(root[r].cnt - root[l].cnt < k) return -inf;
-        if(left == right) return a[left];
+        if(root[r].cnt - root[l].cnt < k) {
+            return -inf;
+        }
+        if(left == right) {
+            return a[left];
+        }
         int middle = (left + right) >> 1;
-        int left_cnt = root[child[r].ff].cnt - root[child[l].ff].cnt;
-        if(left_cnt >= k) return kth(child[l].ff, child[r].ff, k, left, middle);
-        return kth(child[l].ss, child[r].ss, k - left_cnt, middle + 1, right);
+        int left_cnt = root[child[r].first].cnt - root[child[l].first].cnt;
+        if(left_cnt >= k) {
+            return kth(child[l].first, child[r].first, k, left, middle);
+        }
+        return kth(child[l].second, child[r].second, k - left_cnt, middle + 1, right);
     }
 
-    ll sum_kth(int l, int r, int k, int left, int right) {
-        if(root[r].cnt - root[l].cnt < k) return -inf;
-        if(k <= 0) return 0;
-        if(left == right) return (ll)k * a[left];
+    i64 sum_kth(int l, int r, int k, int left, int right) {
+        if(root[r].cnt - root[l].cnt < k) {
+            return -inf;
+        }
+        if(k <= 0) {
+            return 0;
+        }
+        if(left == right) {
+            return (i64)k * a[left];
+        }
         int middle = (left + right) >> 1;
-        int left_cnt = root[child[r].ff].cnt - root[child[l].ff].cnt;
-        if(left_cnt >= k) return sum_kth(child[l].ff, child[r].ff, k, left, middle); 
-        return root[child[r].ff].sm - root[child[l].ff].sm + sum_kth(child[l].ss, child[r].ss, k - left_cnt, middle + 1, right);
+        int left_cnt = root[child[r].first].cnt - root[child[l].first].cnt;
+        if(left_cnt >= k) {
+            return sum_kth(child[l].first, child[r].first, k, left, middle); 
+        }
+        return root[child[r].first].sm - root[child[l].first].sm + sum_kth(child[l].second, child[r].second, k - left_cnt, middle + 1, right);
     }
 
     int median(int l, int r) {
@@ -947,61 +978,68 @@ struct wavelet_psgt {
         return query_leq(l, r, x) - query_leq(l, r, x - 1);
     }
 
-    Node queries_range(int l, int r, ll low, ll high) {
+    Node queries_range(int l, int r, i64 low, i64 high) {
         return query((l == 0 ? 0 : t[l - 1]), t[r], get_id(low), get_id(high + 1) - 1, 0, n - 1);
     }
 
     Node query(int l, int r, int start, int end, int left, int right) {
-        if(left > end || right < start || left > right) return Node();
-        if(start <= left && right <= end) return root[r] - root[l];
-        int middle = (left + right) >> 1;
-        return query(child[l].ff, child[r].ff, start, end, left, middle) + query(child[l].ss, child[r].ss, start, end, middle + 1, right);
-    }
-	
-	ll first_missing_number(int l, int r) { // https://cses.fi/problemset/task/2184/
-        ll s = 1;
-        return first_missing_number(l == 0 ? 0 : t[l - 1], t[r], 0, n - 1, s);
-    }
-
-    ll first_missing_number(ll l, ll r, ll left, ll right, ll &s) {
-        if(s < a[left]) return s;
-        Node seg = root[r] - root[l];
-        if(a[right] <= s) {
-            s += seg.sm;
-            return s;
+        if(left > end || right < start || left > right) {
+            return Node();
         }
-        ll middle = (left + right) >> 1;
-        first_missing_number(child[l].ff, child[r].ff, left, middle, s);
-        first_missing_number(child[l].ss, child[r].ss, middle + 1, right, s);
-        return s;
+        if(start <= left && right <= end) {
+            return root[r] - root[l];
+        }
+        int middle = (left + right) >> 1;
+        return query(child[l].first, child[r].first, start, end, left, middle) + query(child[l].second, child[r].second, start, end, middle + 1, right);
     }
 
-    pii kth_in_range(int l, int r, int start, int end, int k, int left, int right) {
+    std::pair<int, int> kth_in_range(int l, int r, int start, int end, int k, int left, int right) {
         int C = root[r].cnt - root[l].cnt;
         if(left > end || right < start || left > right || C == 0) return {-1, 0};
-        if(start <= left && right <= end) {
-            if(C < k) return {-1, C};
+        if(start <= left && right <= end && C < k) {
+            return {-1, C};
         }
         if(left == right) {
             return {a[left], C};
         }
         int middle = (left + right) >> 1;
-        auto [lv, lc] = kth_in_range(child[l].ff, child[r].ff, start, end, k, left, middle);
+        auto [lv, lc] = kth_in_range(child[l].first, child[r].first, start, end, k, left, middle);
         if(lv != -1) {
             return {lv, -1};
         }
-        auto [rv, rc] = kth_in_range(child[l].ss, child[r].ss, start, end, k - lc, middle + 1, right);
+        auto [rv, rc] = kth_in_range(child[l].second, child[r].second, start, end, k - lc, middle + 1, right);
         if(rv != -1) {
             return {rv, -1};
         }
         return {-1, lc + rc};
     }
 
-    int kth_in_range(int l, int r, ll left, ll right, int k) {
+    int kth_in_range(int l, int r, i64 left, i64 right, int k) {
 		// https://atcoder.jp/contests/abc324/tasks/abc324_g
-        return kth_in_range(l == 0 ? 0 : t[l - 1], t[r], get_id(left), get_id(right + 1) - 1, k, 0, n - 1).ff; 
+        return kth_in_range(l == 0 ? 0 : t[l - 1], t[r], get_id(left), get_id(right + 1) - 1, k, 0, n - 1).first; 
+    }
+	
+	i64 first_missing_number(int l, int r) { // https://cses.fi/problemset/task/2184/
+        i64 s = 1;
+        return first_missing_number(l == 0 ? 0 : t[l - 1], t[r], 0, n - 1, s);
+    }
+
+    i64 first_missing_number(i64 l, i64 r, i64 left, i64 right, i64 &s) {
+        Node seg = root[r] - root[l];
+        if(s < a[left] || seg.cnt == 0) {
+            return s;
+        }
+        if(a[right] <= s) {
+            s += seg.sm;
+            return s;
+        }
+        i64 middle = (left + right) >> 1;
+        first_missing_number(child[l].first, child[r].first, left, middle, s);
+        first_missing_number(child[l].second, child[r].second, middle + 1, right, s);
+        return s;
     }
 };
+
 
 template<class T>
 struct PSGT {
@@ -3411,3 +3449,37 @@ struct parity_subarray_info {
     }
 };
 
+struct tree_mex_info {
+    int l, r, good, empty;
+    tree_mex_info(int x = -1) : empty(x == -1), l(x), r(x), good(1) { }
+
+    friend tree_mex_info operator+(const tree_mex_info& a, const tree_mex_info& b) {
+        if(a.empty) return b;
+        if(b.empty) return a;
+        tree_mex_info res;
+        res.empty = false;
+        res.good = a.good && b.good;
+        vi A = {a.l, a.r, b.l, b.r};
+        srtU(A);
+        const int N = A.size();
+        int u = -1, v = -1, mx = -1;
+        for(int i = 0; i < N; i++) {
+            for(int j = i + 1; j < N; j++) {
+                int d = g.dist(A[i], A[j]);
+                if(d > mx) {
+                    mx = d;
+                    u = A[i];
+                    v = A[j];
+                }
+            }
+        }
+        int ok = 1;
+        for(auto& x : A) {
+            ok &= g.dist(u, x) + g.dist(v, x) == g.dist(u, v);
+        }
+        res.good &= ok;
+        res.l = u;
+        res.r = v;
+        return res;
+    }
+};

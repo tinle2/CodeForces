@@ -10,23 +10,34 @@ struct custom {
 template <class K, class V> using umap = std::unordered_map<K, V, custom>; 
 template <class K> using uset = std::unordered_set<K, custom>; template<class K, class V = int> using gpt = gp_hash_table<K, V, custom>;
 
+std::mt19937_64 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+i64 random(i64 R) { return rng() % R; }
+i64 random(i64 L, i64 R) { return L + random(R - L + 1); }
+
 #define M_PI 3.14159265358979323846
 const static string pi = "3141592653589793238462643383279";
-inline ll gcd(ll a, ll b) {
-    int neg = 0;
-    if(a < 0) {
-        neg ^= 1;
-        a = -a;
+template<typename T = int>
+inline T fgcd(T a, T b) { // becareful with ll type, have to add ll to the ctz function
+    int neg = (a < 0) ^ (b < 0);
+    if(a < 0) a = -a;
+    if(b < 0) b = -b;
+    if(a == 0) return b;
+    if(b == 0) return a;
+    int az = __builtin_ctz(a); // add ll
+    int bz = __builtin_ctz(b); // __builtin_ctzll
+    int shift = std::min(az, bz);
+    b >>= bz;
+ 
+    while(a != 0) {
+        a >>= az;
+        int d = b - a;
+        az = __builtin_ctz(d); // add ll
+        b = std::min(a, b);
+        a = abs(d);
     }
-    if(b < 0) {
-        neg ^= 1;
-        b = -b;
-    }
-    while(b) {
-        a %= b;
-        swap(a, b);
-    }
-    return a * (neg ? -1 : 1);
+    T g = b << shift;
+    if(neg) g = -g;
+    return g;
 }
 
 ll lcm(ll a, ll b) { return (a / gcd(a, b)) * b; }

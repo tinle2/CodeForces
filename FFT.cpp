@@ -2,12 +2,12 @@ template <int MOD>
 struct mod_int {
     int value;
     
-    mod_int(ll v = 0) { value = int(v % MOD); if (value < 0) value += MOD; }
+    mod_int(i64 v = 0) { value = int(v % MOD); if (value < 0) value += MOD; }
     
     mod_int& operator+=(const mod_int &other) { value += other.value; if (value >= MOD) value -= MOD; return *this; }
     mod_int& operator-=(const mod_int &other) { value -= other.value; if (value < 0) value += MOD; return *this; }
-    mod_int& operator*=(const mod_int &other) { value = int((ll)value * other.value % MOD); return *this; }
-    mod_int pow(ll p) const { mod_int ans(1), a(*this); while (p) { if (p & 1) ans *= a; a *= a; p /= 2; } return ans; }
+    mod_int& operator*=(const mod_int &other) { value = int((i64)value * other.value % MOD); return *this; }
+    mod_int pow(i64 p) const { mod_int ans(1), a(*this); while (p) { if (p & 1) ans *= a; a *= a; p /= 2; } return ans; }
     
     mod_int inv() const { return pow(MOD - 2); }
     mod_int& operator/=(const mod_int &other) { return *this *= other.inv(); }
@@ -24,14 +24,14 @@ struct mod_int {
     bool operator<=(const mod_int &other) const { return value <= other.value; }
     bool operator>=(const mod_int &other) const { return value >= other.value; }
     
-    mod_int operator&(const mod_int &other) const { return mod_int((ll)value & other.value); }
+    mod_int operator&(const mod_int &other) const { return mod_int((i64)value & other.value); }
     mod_int& operator&=(const mod_int &other) { value &= other.value; return *this; }
-    mod_int operator|(const mod_int &other) const { return mod_int((ll)value | other.value); }
+    mod_int operator|(const mod_int &other) const { return mod_int((i64)value | other.value); }
     mod_int& operator|=(const mod_int &other) { value |= other.value; return *this; }
-    mod_int operator^(const mod_int &other) const { return mod_int((ll)value ^ other.value); }
+    mod_int operator^(const mod_int &other) const { return mod_int((i64)value ^ other.value); }
     mod_int& operator^=(const mod_int &other) { value ^= other.value; return *this; }
-    mod_int operator<<(int shift) const { return mod_int(((ll)value << shift) % MOD); }
-    mod_int& operator<<=(int shift) { value = int(((ll)value << shift) % MOD); return *this; }
+    mod_int operator<<(int shift) const { return mod_int(((i64)value << shift) % MOD); }
+    mod_int& operator<<=(int shift) { value = int(((i64)value << shift) % MOD); return *this; }
     mod_int operator>>(int shift) const { return mod_int(value >> shift); }
     mod_int& operator>>=(int shift) { value >>= shift; return *this; }
 
@@ -40,27 +40,22 @@ struct mod_int {
     mod_int& operator--() { if (value == 0) value = MOD - 1; else --value; return *this; }
     mod_int operator--(int) { mod_int temp = *this; --(*this); return temp; }
 
-    explicit operator ll() const { return (ll)value; }
+    explicit operator i64() const { return (i64)value; }
     explicit operator int() const { return value; }
-    explicit operator db() const { return (db)value; }
+	explicit operator double() const { return (double)value; }
 
     friend mod_int operator-(const mod_int &a) { return mod_int(0) - a; }
-    friend ostream& operator<<(ostream &os, const mod_int &a) { os << a.value; return os; }
-    friend istream& operator>>(istream &is, mod_int &a) { ll v; is >> v; a = mod_int(v); return is; }
+    friend std::ostream& operator<<(std::ostream &os, const mod_int &a) { os << a.value; return os; }
+    friend std::istream& operator>>(std::istream &is, mod_int &a) { i64 v; is >> v; a = mod_int(v); return is; }
 };
 
 const static int MOD = 1e9 + 7;
 using mint = mod_int<998244353>;
-using vmint = vt<mint>;
-using vvmint = vt<vmint>;
-using vvvmint = vt<vvmint>;
-using pmm = pair<mint, mint>;
-using vpmm = vt<pmm>;
 
-typedef complex<db> cd;
+typedef complex<double> cd;
 template<class T>
 struct FFT { // given 2 array a and b, compute the number of pair that make up (a[i] * b[j] for all j) in nlogn
-    static void fft(vt<cd>& a, bool invert) {
+    static void fft(vector<cd>& a, bool invert) {
         int n = a.size();
         for(int i = 1, j = 0; i < n; i++) {
             int bit = n >> 1;
@@ -69,7 +64,7 @@ struct FFT { // given 2 array a and b, compute the number of pair that make up (
             if (i < j) swap(a[i], a[j]);
         }
         for(int len = 2; len <= n; len <<= 1) {
-            db angle = 2 * M_PI / len * (invert ? -1 : 1);
+            double angle = 2 * M_PI / len * (invert ? -1 : 1);
             cd wlen(cos(angle), sin(angle));
             for(int i = 0; i < n; i += len) {
                 cd w(1);
@@ -86,27 +81,27 @@ struct FFT { // given 2 array a and b, compute the number of pair that make up (
         }
     }
  
-    static vt<T> convolve(const vt<T>& a, const vt<T>& b) {
+    static vector<T> convolve(const vector<T>& a, const vector<T>& b) {
         int a_sz = (int)a.size();
         int b_sz = (int)b.size();
         int needed = a_sz + b_sz - 1;
         int N = 1;
         while (N < needed) N <<= 1;
         vector<cd> fa(N, cd(0,0)), fb(N, cd(0,0));
-        for(int i = 0; i < (int)a.size(); i++) fa[i] = cd(db(a[i]), 0);
-        for(int j = 0; j < (int)b.size(); j++) fb[j] = cd(db(b[j]), 0);
+        for(int i = 0; i < (int)a.size(); i++) fa[i] = cd(double(a[i]), 0);
+        for(int j = 0; j < (int)b.size(); j++) fb[j] = cd(double(b[j]), 0);
         fft(fa, false);
         fft(fb, false);
         for(int i = 0; i < N; i++) fa[i] *= fb[i];
         fft(fa, true);
-        vt<T> res(N);
+        vector<T> res(N);
         for(int i = 0; i < N; i++)
             res[i] = (T)round(fa[i].real());
         return res;
     }
 
-    static vt<T> power(vt<T> poly, int exp) {
-        vt<T> res(1, 1);
+    static vector<T> power(vector<T> poly, int exp) {
+        vector<T> res(1, 1);
         while(exp > 0) {
             if (exp & 1) {
                 res = convolve(res, poly);

@@ -481,9 +481,8 @@ template<class T>
 class Combinatoric {    
     public: 
     int N;  
-    vector<T> fact, inv;   
-    Combinatoric(int _N) : N(_N) {   
-        fact.resize(N + 1), inv.resize(N + 1);
+    std::vector<T> fact, inv;   
+    Combinatoric(int _N) : N(_N), fact(N + 1), inv(N + 1) {   
         init();
     }
         
@@ -499,41 +498,50 @@ class Combinatoric {
     }
     
     T nCk(int a, int b) {  
-        if(a < b) return 0;
-        assert(max(a, b) <= N);
+        if(a < b) {
+            return 0;
+        }
+        assert(std::max(a, b) <= N);
         return fact[a] * inv[b] * inv[a - b];
     }
 
     T nPk(int n, int k) {
-        if (k < 0 || k > n) return 0; 
+        if (k < 0 || k > n) {
+            return 0;
+        }
         return fact[n] * inv[n - k];
     }
 
-    ull nCk_no_mod(ull n, ull r) {
-		if(n < r) return 0;
-		r = min(r, n - r);
-		ull ans = 1;
-		for(int i = 1 ; i <= r ; i++) {
-			ull d = gcd(ans, i);
+    u64 nCk_no_mod(i64 n, i64 r) {
+		if(n < r) {
+            return 0;
+        }
+		r = std::min(r, n - r);
+		u64 ans = 1;
+		for(int i = 1; i <= r ; i++) {
+			u64 d = std::gcd(ans, i);
 			ans /= d;
 			ans *= (n - i + 1) / (i / d);
 		}
 		return ans ;
 	}
 
-    mint lucas(ll n, ll r) { // call on Combinatoric comb(MOD - 1) for small PRIME MOD, log(C)
-        if(r > n) return 0;
-        if(r == 0) return 1;
+    mint lucas(i64 n, i64 r) { // call on Combinatoric comb(MOD - 1) for small PRIME MOD, log(C)
+        if(r > n) {
+            return 0;
+        }
+        if(r == 0) {
+            return 1;
+        }
         int ni = n % MOD;
         int ri = r % MOD;
-        if(ri > ni) return 0;
-        return lucas(n / MOD, r / MOD) * nCk(ni, ri);
+        return ri > ni ? 0 : lucas(n / MOD, r / MOD) * nCk(ni, ri);
     }
 
-    ll derangement(int n) {
+    i64 derangement(int n) {
         if(n == 0) return 1;
         if(n == 1) return 0;
-        vll D(n + 1);
+        std::vector<i64> D(n + 1);
         D[0] = 1;
         D[1] = 0;
         for(int i = 2; i <= n; ++i) {
@@ -551,9 +559,11 @@ class Combinatoric {
         return nCk(n + m - 1, n);
     }
 
-//    ll nCk_mod_Lucas_Theorem(int n, int r, int mod) {
-//        if(r > n) return 0 ;
-//        ll res = 1;
+//    i64 nCk_mod_Lucas_Theorem(int n, int r, int mod) {
+//        if(r > n) {
+//            return 0;
+//        }
+//        i64 res = 1;
 //        while(n && r) {
 //            res *= nCk(n % mod, r % mod) ;
 //            res %= mod ;
@@ -564,20 +574,21 @@ class Combinatoric {
 //    }
 //
 //    int nCk_lucas(int n, int r, int mod) {
-//        vi ans;
+//        std::vector<int> ans;
 //        for(auto& x : DIV[mod]) {
-//            ans.pb(nCk_mod_Lucas_Theorem(n, r, x));
+//            ans.push_back(nCk_mod_Lucas_Theorem(n, r, x));
 //        }
-//        ll res = 0;
+//        i64 res = 0;
 //        for(int i = 0; i < int(DIV[mod].size()); i++) {
 //            int p = DIV[mod][i];
-//            ll m = mod / p;
-//            ll inv = modExpo(m, p - 2, p);
+//            i64 m = mod / p;
+//            i64 inv = modExpo(m, p - 2, p);
 //            res = (res + ans[i] * m % mod * inv) % mod;
 //        }
 //        return res;
 //    }
-}; Combinatoric<mint> comb(MX - 1);
+}; 
+Combinatoric<mint> comb(MX - 1);
 
 const int K = 5010;
 mint nCk[K][K];
@@ -1141,16 +1152,16 @@ struct sos_dp {
     }
 };
 
-vll submask_nck(int n, int k) {
+std::vector<int> submask_nck(int n, int k) {
     if(k < 0 || k > n) return {};
     if(k == 0) return {0};
-    vll masks;
-    ll m = (1LL << k) - 1;
-    ll limit = 1LL << n;
+    std::vector<int> masks;
+    int m = (1LL << k) - 1;
+    int limit = 1LL << n;
     while(m < limit) {
-        masks.pb(m);
-        ll x = m & -m;
-        ll y = m + x;
+        masks.push_back(m);
+        int x = m & -m;
+        int y = m + x;
         m = ((m & ~y) / x >> 1) | y;
     }
     return masks;

@@ -9,17 +9,17 @@ class Binary_Trie {
         }
     };
     public:
-    static vector<Node> T; // careful with static if no merging needed
+    static std::vector<Node> T; // careful with static if no merging needed
     int root;
     int BIT;
     Binary_Trie(int _BIT = 30) : BIT(_BIT){ root = new_node(); }
 
     int new_node() {
-        T.pb(Node());
+        T.push_back(Node());
         return T.size() - 1;
     }
     
-    void insert(ll num, int v = 1) {  
+    void insert(i64 num, int v = 1) {  
         int curr = root;   
         for(int i = BIT - 1; i >= 0; i--) {  
             int bits = (num >> i) & 1;  
@@ -32,7 +32,7 @@ class Binary_Trie {
 		// dfs_insert(root, num, m - 1);
     }
 	
-	void dfs_insert(int curr, ll num, int bit) {
+	void dfs_insert(int curr, i64 num, int bit) {
 		if(bit == -1) {
             T[curr].cnt = 1;
 			return;
@@ -76,8 +76,8 @@ class Binary_Trie {
         return w;
     }
 
-    ll max_and(ll num) {
-        ll res = 0;
+    i64 max_and(i64 num) {
+        i64 res = 0;
         int curr = 0;
         for(int i = BIT - 1; i >= 0; i--) {
             int bit = (num >> i) & 1;
@@ -92,8 +92,8 @@ class Binary_Trie {
         return res;
     }
         
-    ll max_xor(ll num) {  
-        ll res = 0, curr = root;
+    i64 max_xor(i64 num) {  
+        i64 res = 0, curr = root;
         for(int i = BIT - 1; i >= 0; i--) { // go from lsb to msb if maximizing all pair ORs
             int bits = (num >> i) & 1;  
             int other = T[curr].c[!bits];
@@ -109,8 +109,8 @@ class Binary_Trie {
         return res;
     }
 
-    ll min_xor(ll num) {  
-        ll res = num, curr = root;
+    i64 min_xor(i64 num) {  
+        i64 res = num, curr = root;
         for(int i = BIT - 1; i >= 0; i--) {
             int bits = (num >> i) & 1;  
             int same = T[curr].c[bits];
@@ -127,22 +127,22 @@ class Binary_Trie {
         return res;
     }
 
-    ll cross_max_xor(const Binary_Trie& other, ll val = 0) {
+    i64 cross_max_xor(const Binary_Trie& other, i64 val = 0) {
         return cross_max_xor(root, other.root, val, BIT - 1);
     }
 
-    ll cross_max_xor(int u, int v, ll val, int bit) {
+    i64 cross_max_xor(int u, int v, i64 val, int bit) {
         if(u == 0 || v == 0 || bit < 0) return 0;
         int valb = (val >> bit) & 1;
         int want = valb ^ 1;
-        ll res = -1;
+        i64 res = -1;
         for(int i = 0; i < 2; i++) {
             for(int j = 0; j < 2; j++) {
                 int other = i ^ j;
                 if(other ^ valb) {
                     int u0 = T[u].c[i], v0 = T[v].c[j];
                     if(u0 && v0 && T[u0].cnt > 0 && T[v0].cnt > 0) {
-                        res = max(res, (1LL << bit) | cross_max_xor(u0, v0, val, bit - 1));
+                        res = std::max(res, (1LL << bit) | cross_max_xor(u0, v0, val, bit - 1));
                     }
                 }
             }
@@ -154,46 +154,46 @@ class Binary_Trie {
                     if(same == valb) {
                         int u0 = T[u].c[i], v0 = T[v].c[j];
                         if(u0 && v0 && T[u0].cnt > 0 && T[v0].cnt > 0) {
-                            res = max(res, cross_max_xor(u0, v0, val, bit - 1));
+                            res = std::max(res, cross_max_xor(u0, v0, val, bit - 1));
                         }
                     }
                 }
             }
         }
-        return max(0LL, res);
+        return std::max(0LL, res);
     }
 
-    ll cross_min_xor(const Binary_Trie& other, ll val = 0) const {
+    i64 cross_min_xor(const Binary_Trie& other, i64 val = 0) const {
         return cross_min_xor(root, other.root, val, BIT - 1);
     }
 
-    ll cross_min_xor(int u, int v, ll val, int bit) const {
+    i64 cross_min_xor(int u, int v, i64 val, int bit) const {
         if(u == 0 || v == 0) return INF;
         if(bit  < 0) return 0;
         int valb = (val >> bit) & 1;
-        ll best = INF;
+        i64 best = INF;
         for(int b = 0; b < 2; ++b) {
             int uu = T[u] .c[b];
             int vv = T[v].c[b ^ valb];
             if(uu && vv) {
-                best = min(best, cross_min_xor(uu, vv, val, bit - 1));
+                best = std::min(best, cross_min_xor(uu, vv, val, bit - 1));
             }
         }
         if(best < INF) return best;
-        ll cost = 1LL << bit;
+        i64 cost = 1LL << bit;
         for(int b = 0; b < 2; ++b) {
             int uu = T[u] .c[b];
             int vv = T[v].c[b ^ (valb ^ 1)];
             if(uu && vv) {
-                best = min(best, cost + cross_min_xor(uu, vv, val, bit - 1));
+                best = std::min(best, cost + cross_min_xor(uu, vv, val, bit - 1));
             }
         }
         return best;
     }
 
-	ll count_less_than(ll a, ll b) {
+	i64 count_less_than(i64 a, i64 b) {
         int curr = root;
-        ll res = 0;
+        i64 res = 0;
         for(int i = BIT - 1; i >= 0; i--) {
             int bits = (a >> i) & 1;
             int b_bits = (b >> i) & 1;
@@ -212,9 +212,9 @@ class Binary_Trie {
         return res;
     }
 	
-	ll count_greater_than(ll a, ll b) {
+	i64 count_greater_than(i64 a, i64 b) {
         int curr = root;
-        ll res = 0;
+        i64 res = 0;
         for(int i = BIT - 1; i >= 0; i--) {
             int bits = (a >> i) & 1;
             int b_bits = (b >> i) & 1;
@@ -228,8 +228,8 @@ class Binary_Trie {
         return res;
     }
 	
-	ll find_mex(ll x) { // https://codeforces.com/contest/842/submission/296903755
-        ll mex = 0, curr = root;
+	i64 find_mex(i64 x) { // https://codeforces.com/contest/842/submission/296903755
+        i64 mex = 0, curr = root;
         for(int i = BIT - 1; i >= 0; i--) {
             int bit = (x >> i) & 1;
             int c = T[curr].c[bit] ? T[T[curr].c[bit]].cnt : 0;
@@ -245,7 +245,7 @@ class Binary_Trie {
         return mex;
     }
 	
-	ll kth(ll k) {
+	i64 kth(i64 k) {
         int curr = root;
         int res = 0;
         for(int i = BIT - 1; i >= 0; i--) {
@@ -265,10 +265,11 @@ class Binary_Trie {
     }
 
     void clear() {
-        vector<Node>().swap(T);
+        std::vector<Node>().swap(T);
         root = new_node();
     }
-}; vector<Binary_Trie::Node> Binary_Trie::T;
+}; std::vector<Binary_Trie::Node> Binary_Trie::T;
+
 
 struct PERSISTENT_TRIE {
     struct Node {
@@ -447,83 +448,86 @@ struct Trie {
 template<int SIGMA = 26>
 struct aho_corasick {
     struct Node {
-        int c[SIGMA], link[SIGMA], sfx, dict, is_end, cnt;
+        int go[SIGMA];
+        int sfx, dict, is_end, cnt;
         Node() {
-			memset(c, 0, sizeof(c));
-            memset(link, 0, sizeof(link));
+            memset(go, 0, sizeof(go));
             sfx = dict = cnt = is_end = 0;
         }
     };
     vector<Node> T;
- 
+
     char off;
-    aho_corasick(char _off) : off(_off) {
-        T.emplace_back(); 
-    }
+    aho_corasick(char _off) : off(_off) { T.emplace_back(); }
     int get(char ch){ return ch - off; }
 
     void insert(const string &s){
         int u = 0;
         for(char ch: s){
             int x = get(ch);
-            if(!T[u].c[x]) {
-                T[u].c[x] = T.size(), T.emplace_back();
+            if(!T[u].go[x]) {
+                T[u].go[x] = (int)T.size();
+                T.emplace_back();
             }
-            u = T[u].c[x];
+            u = T[u].go[x];
         }
         T[u].is_end = 1;
         T[u].cnt = 1;
     }
 
-	bool built = false;
-	void build() {
+    bool built = false;
+    void build() {
         if(built) return;
         built = true;
+
         queue<int> q;
         for(int x = 0; x < SIGMA; x++) {
-            T[0].link[x] = T[0].c[x];
-            if(T[0].c[x]) {
-                q.push(T[0].c[x]);
-            }
+            int u = T[0].go[x];
+            if(u) q.push(u);
         }
+
         while(!q.empty()) {
             int v = q.front(); q.pop();
             int f = T[v].sfx;
             T[v].dict = T[f].is_end ? f : T[f].dict;
             T[v].cnt += T[f].cnt;
+
             for(int x = 0; x < SIGMA; x++) {
-                int u = T[v].c[x];
+                int u = T[v].go[x];
                 if(u) {
-                    T[u].sfx = T[f].link[x];
-                    T[v].link[x] = u;
+                    T[u].sfx = T[f].go[x];
                     q.push(u);
                 } else {
-                    T[v].link[x] = T[f].link[x];
+                    T[v].go[x] = T[f].go[x];
                 }
             }
         }
     }
 
-    int process(int &prev, char ch) { // return the number of nodes ending if moving to ch from prev
+    int process(int prev) {
         if(!built) build();
-        prev = advance(prev, ch);
-        int curr = prev;
-        int now = 0;
-        return T[curr].cnt;
+        int curr = T[prev].is_end ? prev : T[prev].dict;
+        int res = 0;
+        while(curr && T[curr].is_end) {
+            res++;
+            curr = T[curr].dict;
+        }
+        return res;
     }
 
-	int advance(int u, char ch) {
+    int advance(int u, char ch) {
         if(!built) build();
-        return T[u].link[get(ch)];
+        return T[u].go[get(ch)];
     }
- 
+
     vi query(const string& s) {
         if(!built) build();
         int prev = 0;
-        int n = s.size();
+        int n = (int)s.size();
         vi ans(n);
         for(int i = 0; i < n; i++) {
-            ans[i] = process(prev, s[i]);
+            prev = advance(prev, s[i]);
+            ans[i] = process(prev);
         }
         return ans;
     }
@@ -2035,7 +2039,7 @@ class suffix_array { // O(n) suffix_array
     pii get_range(int x, int len) {
         int left = 0, right = x - 1, L = -1, R = x;
         while(left <= right) {
-            int middle = midPoint;
+            int middle = (left + right) >> 1;
             if(rmq.query(middle, x - 1) >= len) L = middle, right = middle - 1;
             else left = middle + 1;
         }
@@ -2047,7 +2051,7 @@ class suffix_array { // O(n) suffix_array
         }
         left = x, right = n - 1; 
         while(left <= right) {
-            int middle = midPoint;
+            int middle = (left + right) >> 1;
             if(rmq.query(x, middle) >= len) R = middle + 1, left = middle + 1;
             else right = middle - 1;
         }
@@ -2095,7 +2099,7 @@ class suffix_array { // O(n) suffix_array
     }
 
     int count(const string& x) {
-        if(x.size() > n) return 0;
+        if((int)x.size() > n) return 0;
         auto [l, r] = get_bound(x);
         return l == -1 ? 0 : r - l + 1;
     }
@@ -2141,7 +2145,7 @@ class suffix_array { // O(n) suffix_array
         return "";
     }
 
-    string lcs(vs& a) {
+    string lcs(vector<string>& a) {
         int K = a.size();
         if(K == 0) return "";
         if(K == 1) return a[0];
