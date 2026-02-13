@@ -9,6 +9,10 @@ using u64 = unsigned long long;
 using i128 = __int128;
 
 void solve() {
+    int n;
+    std::cin >> n;
+    std::cout << n << '\n';
+
 }
 
 int main() {
