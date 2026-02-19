@@ -286,21 +286,21 @@ public:
 };
 
 https://codeforces.com/contest/1749/problem/F?adcd1e=caf4f277g6k8yy&csrf_token=6beea33a44ff1d0047d81022f5bd54ff&__cf_chl_tk=NS60GPs8ohrOPuSQY5cYAm5P2tPa3R.GhNrP4ZSVgWc-1764193587-1.0.1.1-LIrQY9Yh5ok.CX3Gu70kyj8yufbK16TomCmbCxKEPj4
-template<class T, typename TT = int, typename F = function<T(const T&, const T&)>>
+template<class T, typename TT = int, typename F = std::function<T(const T&, const T&)>>
 class HLD {
     private:
-	vpii get_path_helper(int node, int par) {
-        vpii res;
+	std::vector<std::pair<int, int>> get_path_helper(int node, int par) {
+        std::vector<std::pair<int, int>> res;
         while(node != par && node != -1) {   
             if(g.depth[tp[node]] > g.depth[par]) {   
-                res.pb({id[tp[node]], id[node]});
+                res.push_back({id[tp[node]], id[node]});
                 node = parent[tp[node]];
             } else {   
-                res.pb({id[par] + 1, id[node]});
+                res.push_back({id[par] + 1, id[node]});
                 break;  
             } 
         }   
-        res.pb({id[par], id[par]});
+        res.push_back({id[par], id[par]});
         return res;
     }
 
@@ -333,17 +333,17 @@ class HLD {
     }
     public:
     SGT<T> seg;
-    vi id, tp, sz, parent, chain_id, rid;
+    std::vector<int> id, tp, sz, parent, chain_id, rid;
     int chain_cnt;
     int ct;
-    vector<vector<TT>> graph;
+    std::vector<std::vector<TT>> graph;
     int n;
     GRAPH<TT> g;
     T DEFAULT;
     F func;
     HLD() {}
 
-    HLD(vector<vector<TT>>& _graph, vi a, F func, int root = 0, T DEFAULT = 0) : graph(_graph), seg(_graph.size(), DEFAULT, func), g(graph, root), n(graph.size()), func(func), DEFAULT(DEFAULT) {
+    HLD(std::vector<std::vector<TT>>& _graph, std::vector<int> a, F func, int root = 0, T DEFAULT = 0) : graph(_graph), seg(_graph.size(), DEFAULT, func), g(graph, root), n(graph.size()), func(func), DEFAULT(DEFAULT) {
         this->parent = move(g.parent);
         this->sz = move(g.subtree);
         chain_cnt = 0, ct = 0;
@@ -389,7 +389,7 @@ class HLD {
         seg.update_range(id[i], id[i] + sz[i] - 1, v);
     }
 
-	vpii get_path(int u, int v) {
+	std::vector<std::pair<int, int>> get_path(int u, int v) {
         int p = g.lca(u, v);
         auto path = get_path_helper(u, p);
         auto other = get_path_helper(v, p);

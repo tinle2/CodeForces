@@ -1072,22 +1072,22 @@ struct RabinKarp {
 
 class MANACHER {    
     public: 
-    string s;   
-    string ans; 
-    string max_prefix, max_suffix;
-    ll total_palindrome;
+    std::string s;   
+    std::string ans; 
+    std::string max_prefix, max_suffix;
+    i64 total_palindrome;
     int n;
-    vi man;
-    vi prefix; // longest palindrome length starting at index i
-    vi suffix; // longest palindrome length ending at index i
+    std::vector<i64> man;
+    std::vector<i64> prefix; // longest palindrome length starting at index i
+    std::vector<i64> suffix; // longest palindrome length ending at index i
 
-    MANACHER(const string s) { 
+    MANACHER(const std::string s) { 
         total_palindrome = 0;
         this->n = s.size();
         this->s = s;
         build_manacher();
-        string odd = get_max_palindrome(s, 1);  
-        string even = get_max_palindrome(s, 0);
+        std::string odd = get_max_palindrome(s, 1);  
+        std::string even = get_max_palindrome(s, 0);
         ans = odd.size() > even.size() ? odd : even;
         for(int i = 0; i < n; i++) {
             int evenLen = longest_even_palindrome_center_at(i);
@@ -1103,8 +1103,8 @@ class MANACHER {
                 int half = oddLen / 2;
                 int L = i - half;
                 int R = i + half;
-                prefix[L] = max(prefix[L], oddLen);
-                suffix[R] = max(suffix[R], oddLen);
+                prefix[L] = std::fmax(prefix[L], oddLen);
+                suffix[R] = std::fmax(suffix[R], oddLen);
             }
 
             int evenLen = longest_even_palindrome_center_at(i);
@@ -1113,38 +1113,38 @@ class MANACHER {
                 int L = i - half + 1;
                 int R = i + half;
                 if(L >= 0 && R < n) {
-                    prefix[L] = max(prefix[L], evenLen);
-                    suffix[R] = max(suffix[R], evenLen);
+                    prefix[L] = std::fmax(prefix[L], evenLen);
+                    suffix[R] = std::fmax(suffix[R], evenLen);
                 }
             }
         }
         for(int i = n - 2; i >= 0; --i) {
-            suffix[i] = max(suffix[i], suffix[i + 1] - 2);
+            suffix[i] = std::max(suffix[i], suffix[i + 1] - 2);
         }
         for(int i = 1; i < n; ++i) {
-            prefix[i] = max(prefix[i], prefix[i - 1] - 2);
+            prefix[i] = std::max(prefix[i], prefix[i - 1] - 2);
         }
         max_prefix = s.substr(0, prefix[0]);
         max_suffix = s.substr(n - suffix.back());
     }
 
-    ll get_total_palindrome() {
+    i64 get_total_palindrome() {
         return total_palindrome;
     }
     
     void build_manacher() {
-        string t;
+        std::string t;
         for(char c : s) {
-            t.pb('#');
-            t.pb(c);
+            t.push_back('#');
+            t.push_back(c);
         }
-        t.pb('#');
+        t.push_back('#');
         int T = t.size();
         man.assign(T, 0);
         int L = 0, R = 0;
         for(int i = 0; i < T; i++) {
             if(i < R) {
-                man[i] = min(R - i, man[L + R - i]);
+                man[i] = std::fmin(R - i, man[L + R - i]);
             } else {
                 man[i] = 0;
             }
@@ -1158,12 +1158,12 @@ class MANACHER {
         }
     }
 
-    string longest_palindrome() {  
+    std::string longest_palindrome() {  
         return ans;
     }
 
-    vi get_manacher(string s, int start) { // odd size palindrome start with 1, even start with 0
-        string tmp;
+    std::vector<i64> get_manacher(std::string s, int start) { // odd size palindrome start with 1, even start with 0
+        std::string tmp;
         for(auto& it : s) {
             tmp += "#";
             tmp += it;
@@ -1171,11 +1171,11 @@ class MANACHER {
         tmp += "#";  
         swap(s, tmp);
         int n = s.size();
-        vector<int> p(n); 
+        std::vector<int> p(n); 
         int l = 0, r = 0;  
         for(int i = 0; i < n; i++) {
             if(i < r) {
-                p[i] = min(r - i, p[l + r - i]);
+                p[i] = std::min(r - i, p[l + r - i]);
             } else {
                 p[i] = 0;
             }
@@ -1187,20 +1187,20 @@ class MANACHER {
                 r = i + p[i] - 1;
             }
         }
-        vi result;
+        std::vector<i64> result;
         for(int i = start; i < n; i += 2) {
-            result.pb(p[i] / 2);
+            result.push_back(p[i] / 2);
         }
         if(start == 0) { // for even size, shift by one index to the right
             for(int i = 1; i < (int)result.size(); i++) {    
-                swap(result[i - 1], result[i]);
+                std::swap(result[i - 1], result[i]);
             }
             result.pop_back();
         }
         return result;
     }
         
-	string get_max_palindrome(const string& s, bool odd) {  
+	std::string get_max_palindrome(const std::string& s, bool odd) {  
         auto manacher = get_manacher(s, odd);
         int N = manacher.size();
         int start = 0, max_len = 0;

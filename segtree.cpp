@@ -2186,15 +2186,6 @@ struct hash_info {
         }
         return r;
     }
-
-    void set(int x) {
-        for (int h = 0; h < 2; ++h) {
-            ll val = (ll)x * geom[h][len] % mod[h];
-            fwd[h] = rev[h] = val;
-        }
-        mset(cnt, 0);
-        cnt[x] = len;
-    }
 };
 
 struct max_subarray_info {
