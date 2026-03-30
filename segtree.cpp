@@ -288,11 +288,11 @@ public:
     }
 };
 
-template<typename T, typename lazy_type = ll>
+template<typename T, typename lazy_type = i64>
 struct lazy_seg {
     int n, n0, h;
-    vector<T> tree;
-    vi seglen;
+    std::vector<T> tree;
+    std::vector<int> seglen;
 
     lazy_seg(int n_) : n(n_) , n0(1) , h(0) {
         while(n0 < n) {
@@ -333,8 +333,8 @@ struct lazy_seg {
 
     void update_range(int l, int r, lazy_type v) {
         if(l > r) return;
-        l = max(0, l);
-        r = min(r, n - 1);
+        l = std::max(0, l);
+        r = std::min(r, n - 1);
         int L = l + n0;
         int R = r + n0;
         push_to(L);
@@ -375,8 +375,8 @@ struct lazy_seg {
 
     T queries_range(int l, int r) {
         if(l > r) return T();
-        l = max(0, l);
-        r = min(r, n - 1);
+        l = std::max(0, l);
+        r = std::min(r, n - 1);
         int L = l + n0;
         int R = r + n0;
         push_to(L);
