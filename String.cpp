@@ -899,11 +899,12 @@ ar(2) repeat_hash(ar(2) hash, int period_len, int times) {
 }
 
 const int HASH_COUNT = 2;
-vll base, mod;
-ll p[HASH_COUNT][MX], geom[HASH_COUNT][MX];
+const int MX = 1e5 + 5;
+std::vector<i64> base, mod;
+i64 p[HASH_COUNT][MX], geom[HASH_COUNT][MX];
 void initGlobalHashParams() {
     if (!base.empty() && !mod.empty()) return;
-	vll candidateBases = {
+	std::vector<i64> candidateBases = {
         10007ULL, 10009ULL, 10037ULL, 10039ULL, 10061ULL, 10067ULL, 10069ULL, 10079ULL, 10091ULL, 10093ULL,
         10099ULL, 10103ULL, 10111ULL, 10133ULL, 10139ULL, 10141ULL, 10151ULL, 10159ULL, 10163ULL, 10169ULL,
         10177ULL, 10181ULL, 10193ULL, 10211ULL, 10223ULL, 10243ULL, 10247ULL, 10253ULL, 10259ULL, 10267ULL,
@@ -916,7 +917,7 @@ void initGlobalHashParams() {
         10859ULL, 10861ULL, 10867ULL, 10883ULL, 10889ULL, 10891ULL, 10903ULL, 10909ULL, 10937ULL, 10939ULL
     };
 
-    vll candidateMods = {
+    std::vector<i64> candidateMods = {
         1000000007ULL, 1000000009ULL, 1000000021ULL, 1000000033ULL, 1000000087ULL, 1000000093ULL, 1000000097ULL, 1000000103ULL, 1000000123ULL, 1000000181ULL,
         1000000207ULL, 1000000223ULL, 1000000241ULL, 1000000271ULL, 1000000289ULL, 1000000297ULL, 1000000321ULL, 1000000349ULL, 1000000363ULL, 1000000403ULL,
         1000000409ULL, 1000000411ULL, 1000000427ULL, 1000000433ULL, 1000000439ULL, 1000000447ULL, 1000000453ULL, 1000000459ULL, 1000000483ULL, 1000000513ULL,
@@ -928,9 +929,9 @@ void initGlobalHashParams() {
         1000002043ULL, 1000002051ULL, 1000002061ULL, 1000002083ULL, 1000002101ULL, 1000002133ULL, 1000002161ULL, 1000002179ULL, 1000002253ULL, 1000002271ULL
     };
 								 
-	unsigned seed = chrono::steady_clock::now().time_since_epoch().count();
-    shuffle(all(candidateBases), default_random_engine(seed));
-    shuffle(all(candidateMods), default_random_engine(seed + 1));
+	unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
+    shuffle(begin(candidateBases), end(candidateBases), std::default_random_engine(seed));
+    shuffle(begin(candidateMods), end(candidateMods), std::default_random_engine(seed + 1));
 
     base.resize(HASH_COUNT);
     mod.resize(HASH_COUNT);
@@ -938,16 +939,16 @@ void initGlobalHashParams() {
         mod[i] = candidateMods[i];
         base[i] = candidateBases[i];
     }
-	auto modExpo = [](ll base, ll exp, ll mod) -> ll {
-        ll res = 1; base %= mod; while(exp) { if(exp & 1) res = (res * base) % mod; base = (base * base) % mod; exp >>= 1; } return res; 
+	auto modExpo = [](i64 base, i64 exp, i64 mod) -> i64 {
+        i64 res = 1; base %= mod; while(exp) { if(exp & 1) res = (res * base) % mod; base = (base * base) % mod; exp >>= 1; } return res; 
     };
     for(int j = 0; j < HASH_COUNT; j++) {
-        ll inv = modExpo(base[j] - 1, mod[j] - 2, mod[j]);
+        i64 inv = modExpo(base[j] - 1, mod[j] - 2, mod[j]);
         p[j][0] = 1;
         geom[j][0] = 0;
         for(int i = 1; i < MX; i++) {
             p[j][i] = (p[j][i - 1] * base[j]) % mod[j];
-            ll num = (p[j][i] + mod[j] - 1) % mod[j];
+            i64 num = (p[j][i] + mod[j] - 1) % mod[j];
             geom[j][i] = num * inv % mod[j];
         }
     }
@@ -958,17 +959,17 @@ static const bool _hashParamsInitialized = [](){
     return true;
 }();
 
-template<class T = string>
+template<class T = std::string>
 struct RabinKarp {
     // careful with the + 1 for the 0 hash
-    vll prefix[HASH_COUNT], suffix[HASH_COUNT];
+    std::vector<i64> prefix[HASH_COUNT], suffix[HASH_COUNT];
     int n;
-    string s;
+    std::vector<int> s;
 
     RabinKarp() : n(0) {
         for(int i = 0; i < HASH_COUNT; i++) {
-            prefix[i].pb(0);
-            suffix[i].pb(0);
+            prefix[i].push_back(0);
+            suffix[i].push_back(0);
         }
     }
 
@@ -990,8 +991,8 @@ struct RabinKarp {
 
     void insert(int x) {
         for (int i = 0; i < HASH_COUNT; i++) {
-            ll v = (prefix[i].back() * base[i] + x) % mod[i];
-            prefix[i].pb(v);
+            i64 v = (prefix[i].back() * base[i] + x) % mod[i];
+            prefix[i].push_back(v);
         }
         n++;
     }
@@ -1007,24 +1008,24 @@ struct RabinKarp {
         return n;
     }
     
-    ll get() {
+    i64 get() {
         return get_hash(0, n);
     }
 
-    ll get_hash(int l, int r) const {
+    i64 get_hash(int l, int r) const {
         if (l < 0 || r > n || l > r) return 0;
-        ll hash0 = prefix[0][r] - (prefix[0][l] * p[0][r - l] % mod[0]);
+        i64 hash0 = prefix[0][r] - (prefix[0][l] * p[0][r - l] % mod[0]);
         hash0 = (hash0 % mod[0] + mod[0]) % mod[0];
-        ll hash1 = prefix[1][r] - (prefix[1][l] * p[1][r - l] % mod[1]);
+        i64 hash1 = prefix[1][r] - (prefix[1][l] * p[1][r - l] % mod[1]);
         hash1 = (hash1 % mod[1] + mod[1]) % mod[1];
         return (hash0 << 32) | hash1;
     }
 
-    ll get_rev_hash(int l, int r) const {
-        tie(l, r) = make_tuple(n - r, n - l);
+    i64 get_rev_hash(int l, int r) const {
+        std::tie(l, r) = std::make_tuple(n - r, n - l);
         if(l < 0 || r > n || l >= r) return 0;
-        ll h0 = suffix[0][r] - (suffix[0][l] * p[0][r - l] % mod[0]);
-        ll h1 = suffix[1][r] - (suffix[1][l] * p[1][r - l] % mod[1]);
+        i64 h0 = suffix[0][r] - (suffix[0][l] * p[0][r - l] % mod[0]);
+        i64 h1 = suffix[1][r] - (suffix[1][l] * p[1][r - l] % mod[1]);
         if(h0 < 0) h0 += mod[0];
         if(h1 < 0) h1 += mod[1];
         return (h0 << 32) | h1;
@@ -1049,15 +1050,15 @@ struct RabinKarp {
         return a.get_hash(rightMost + 1 + offSet, offSet + n) == get_hash(rightMost + 1, n);
     }
     
-    ll combine_hash(pll a, pll b, int len) {
-        a.ff = ((a.ff * p[0][len]) + b.ff) % mod[0];
-        a.ss = ((a.ss * p[1][len]) + b.ss) % mod[1];
-        return (a.ff << 32) | a.ss;
+    i64 combine_hash(std::pair<i64, i64> a, std::pair<i64, i64> b, int len) {
+        a.first = ((a.first * p[0][len]) + b.first) % mod[0];
+        a.second = ((a.second * p[1][len]) + b.second) % mod[1];
+        return (a.first << 32) | a.second;
     }
 
     int cmp(const RabinKarp& other) { // -1 : less, 0 = equal, 1 = greater
         if(n == 0 && other.n == 0) return 0;
-        int left = 0, right = min(n, other.n) - 1, res = -1;
+        int left = 0, right = std::min(n, other.n) - 1, res = -1;
         while(left <= right) {
             int middle = (left + right) >> 1;
             if(get_hash(0, middle + 1) != other.get_hash(0, middle + 1)) res = middle, right = middle - 1;
